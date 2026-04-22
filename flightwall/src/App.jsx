@@ -155,52 +155,41 @@ body{background:#080600;font-family:'Share Tech Mono',monospace;color:#ff9900;}
 .overhead-flight:hover{background:#00ff0022;}
 
 /* ── Top 9 flight cards ── */
-.cards-section{padding:12px 16px;background:#090700;border-bottom:2px solid #1a0f00;}
-.cards-title{font-size:8px;color:#443300;letter-spacing:4px;font-family:'Orbitron',monospace;margin-bottom:10px;}
-.cards-grid{display:grid;grid-template-columns:repeat(3,1fr);gap:10px;}
-.flight-card{
-  background:#0c0900;border:1px solid #2a1800;
-  padding:12px 14px;cursor:pointer;
-  transition:all 0.15s;position:relative;
-  overflow:hidden;
-}
+.cards-section{padding:10px 14px;background:#090700;border-bottom:2px solid #1a0f00;}
+.cards-title{font-size:8px;color:#443300;letter-spacing:4px;font-family:'Orbitron',monospace;margin-bottom:8px;}
+.cards-grid{display:grid;grid-template-columns:repeat(3,1fr);gap:8px;}
+.flight-card{background:#0c0900;border:1px solid #2a1800;padding:8px 10px;cursor:pointer;transition:all 0.15s;position:relative;overflow:hidden;}
 .flight-card:hover{background:#160d00;border-color:#443300;}
 .flight-card.sel{background:#1a1000;border-color:#ffaa00;box-shadow:0 0 12px #ff880033;}
 .flight-card.overhead{background:#0c1800;border-color:#44ff8866;box-shadow:0 0 10px #44ff8822;}
 .flight-card::before{content:'';position:absolute;left:0;top:0;bottom:0;width:3px;background:var(--ac,#ff6600);box-shadow:0 0 6px var(--ac,#ff6600);}
-.card-top{display:flex;align-items:flex-start;justify-content:space-between;margin-bottom:8px;}
-.card-cs{font-family:'Orbitron',monospace;font-weight:900;font-size:14px;color:#ffcc00;text-shadow:0 0 10px #ffaa0055;letter-spacing:1px;}
-.card-status{font-size:10px;font-weight:bold;letter-spacing:1px;padding:2px 7px;border-radius:2px;}
+.card-top{display:flex;align-items:center;justify-content:space-between;margin-bottom:4px;}
+.card-cs{font-family:'Orbitron',monospace;font-weight:900;font-size:13px;color:#ffcc00;text-shadow:0 0 10px #ffaa0055;letter-spacing:1px;white-space:nowrap;overflow:hidden;text-overflow:ellipsis;max-width:62%;}
+.card-status{font-size:9px;font-weight:bold;letter-spacing:1px;padding:1px 6px;border-radius:2px;white-space:nowrap;flex-shrink:0;}
 .card-dep{color:#44ff88;background:#00ff0011;border:1px solid #44ff8833;}
 .card-arr{color:#ff5544;background:#ff000011;border:1px solid #ff554433;}
 .card-pat{color:#886633;background:#88660011;border:1px solid #88663333;}
-.card-airline{display:flex;align-items:center;gap:6px;margin-bottom:5px;}
-.al-badge{display:inline-block;padding:1px 6px;font-size:9px;font-weight:bold;letter-spacing:1px;border-radius:2px;font-family:'Orbitron',monospace;}
-.card-airline-name{font-size:11px;color:#cc8844;overflow:hidden;text-overflow:ellipsis;white-space:nowrap;}
-.card-aircraft{font-size:10px;color:#664400;margin-bottom:6px;}
-.card-route{font-size:12px;margin-bottom:8px;display:flex;align-items:center;gap:5px;}
-.card-iata{font-family:'Orbitron',monospace;font-size:13px;font-weight:700;}
+.card-meta{display:flex;align-items:center;gap:5px;margin-bottom:3px;min-width:0;}
+.al-badge{display:inline-block;padding:1px 5px;font-size:8px;font-weight:bold;letter-spacing:1px;border-radius:2px;font-family:'Orbitron',monospace;flex-shrink:0;}
+.card-airline-name{font-size:11px;color:#cc8844;overflow:hidden;text-overflow:ellipsis;white-space:nowrap;flex:1;}
+.card-aircraft-tag{font-size:9px;color:#553300;flex-shrink:0;white-space:nowrap;margin-left:4px;}
+.card-route{font-size:11px;margin-bottom:4px;display:flex;align-items:center;gap:4px;min-width:0;}
+.card-iata{font-family:'Orbitron',monospace;font-size:12px;font-weight:700;flex-shrink:0;}
 .card-iata.orig{color:#44aaff;}
 .card-iata.dest{color:#ff6644;}
-.card-arrow{color:#554400;}
-.card-city{font-size:9px;color:#553300;white-space:nowrap;overflow:hidden;text-overflow:ellipsis;}
-.card-alt-row{display:flex;align-items:center;gap:8px;margin-bottom:4px;}
-.card-alt-num{font-family:'Orbitron',monospace;font-size:13px;color:#ffdd55;text-shadow:0 0 8px #ffaa0044;white-space:nowrap;}
-.card-alt-label{font-size:9px;color:#553300;}
-.card-alt-bar{flex:1;height:5px;background:#160d00;border-radius:3px;overflow:hidden;}
-.card-alt-fill{height:100%;border-radius:3px;background:linear-gradient(90deg,#ff4400,#ffcc00);transition:width 0.5s;}
-.card-footer{display:flex;gap:12px;flex-wrap:wrap;}
-.card-stat{display:flex;flex-direction:column;gap:1px;}
-.card-stat-label{font-size:7px;color:#443300;letter-spacing:2px;}
-.card-stat-val{font-size:10px;color:#ffaa44;font-family:'Orbitron',monospace;}
-.card-details-btn{
-  margin-top:8px;width:100%;
-  background:none;border:1px solid #2a1800;color:#664400;
-  font-family:'Share Tech Mono',monospace;font-size:10px;letter-spacing:2px;
-  padding:4px;cursor:pointer;transition:all 0.15s;
-}
+.card-arrow{color:#554400;flex-shrink:0;}
+.card-city{font-size:9px;color:#443300;white-space:nowrap;overflow:hidden;text-overflow:ellipsis;}
+.card-alt-row{display:flex;align-items:center;gap:8px;margin-bottom:3px;}
+.card-alt-num{font-family:'Orbitron',monospace;font-size:12px;color:#ffdd55;white-space:nowrap;flex-shrink:0;}
+.card-alt-bar{flex:1;height:4px;background:#160d00;border-radius:2px;overflow:hidden;}
+.card-alt-fill{height:100%;border-radius:2px;background:linear-gradient(90deg,#ff4400,#ffcc00);transition:width 0.5s;}
+.card-stats-row{display:flex;gap:12px;align-items:center;margin-bottom:5px;}
+.card-stat{display:flex;align-items:baseline;gap:3px;}
+.card-stat-label{font-size:8px;color:#664400;letter-spacing:1px;white-space:nowrap;}
+.card-stat-val{font-size:11px;color:#ffaa44;font-family:'Orbitron',monospace;white-space:nowrap;}
+.card-details-btn{width:100%;background:none;border:1px solid #1a0f00;color:#553300;font-family:'Share Tech Mono',monospace;font-size:9px;letter-spacing:2px;padding:3px;cursor:pointer;transition:all 0.15s;}
 .card-details-btn:hover{border-color:#ff9900;color:#ff9900;background:#0f0800;}
-.no-local{padding:16px;text-align:center;font-size:11px;color:#332200;letter-spacing:3px;}
+.no-local{padding:14px;text-align:center;font-size:11px;color:#332200;letter-spacing:3px;}
 
 /* ── Map ── */
 .map-section{border-bottom:2px solid #1a0f00;}
@@ -530,70 +519,63 @@ function FlightCards({ flights, routeCache, location, selectedId, onSelect, onDe
               style={{"--ac":getAirlineColor(f.callsign)}}
               onClick={()=>onSelect(isSel?null:f.icao)}>
 
-              {/* Top row: callsign + status */}
+              {/* Row 1: Callsign + status badge */}
               <div className="card-top">
                 <div className="card-cs">
+                  {isOverhead&&<span style={{fontSize:9,color:"#44ff88",marginRight:4}}>●</span>}
                   {f.callsign||f.icao.toUpperCase()}
-                  {isOverhead&&<span style={{fontSize:9,color:"#44ff88",marginLeft:4}}>● OVERHEAD</span>}
                 </div>
                 <div className={statusCls}>{statusTxt}</div>
               </div>
 
-              {/* Airline */}
-              <div className="card-airline">
+              {/* Row 2: Airline badge + name + aircraft type */}
+              <div className="card-meta">
                 <span className="al-badge" style={{background:alColor+"22",border:`1px solid ${alColor}44`,color:alColor}}>
                   {(f.callsign||"???").slice(0,3).toUpperCase()}
                 </span>
                 <span className="card-airline-name">
                   {cached===undefined&&f.callsign?"···":getAirline(f.callsign,route?.airline)}
                 </span>
+                {acType&&<span className="card-aircraft-tag">· {acType}</span>}
               </div>
 
-              {/* Aircraft type */}
-              {acType&&<div className="card-aircraft">{acType.toUpperCase()}</div>}
-
-              {/* Route */}
+              {/* Row 3: Route — only if known */}
               {route?.origin&&route?.destination?(
                 <div className="card-route">
                   <span className="card-iata orig">{route.origin.iata}</span>
                   <span className="card-arrow">→</span>
                   <span className="card-iata dest">{route.destination.iata}</span>
-                  <span className="card-city">&nbsp;{route.origin.city?.slice(0,7).toUpperCase()}→{route.destination.city?.slice(0,7).toUpperCase()}</span>
+                  <span className="card-city">&nbsp;{route.origin.city?.slice(0,8).toUpperCase()} → {route.destination.city?.slice(0,8).toUpperCase()}</span>
                 </div>
               ):cached===undefined&&f.callsign?(
-                <div className="card-route" style={{color:"#332000"}}>···</div>
+                <div className="card-route" style={{color:"#332000",fontSize:10}}>LOOKING UP ROUTE···</div>
               ):null}
 
-              {/* Altitude bar */}
+              {/* Row 4: Altitude number + bar */}
               <div className="card-alt-row">
-                <div>
-                  <div className="card-alt-num">{feetAlt(f.alt)} <span style={{fontSize:9,color:"#664400"}}>FT</span></div>
-                </div>
-                <div className="card-alt-bar">
-                  <div className="card-alt-fill" style={{width:`${altPct}%`}}/>
-                </div>
+                <div className="card-alt-num">{feetAlt(f.alt)}<span style={{fontSize:8,color:"#664400",marginLeft:2}}>FT</span></div>
+                <div className="card-alt-bar"><div className="card-alt-fill" style={{width:`${altPct}%`}}/></div>
               </div>
 
-              {/* Stats row */}
-              <div className="card-footer">
+              {/* Row 5: Speed · Heading · Distance on one line */}
+              <div className="card-stats-row">
                 <div className="card-stat">
-                  <div className="card-stat-label">SPEED</div>
-                  <div className="card-stat-val">{fmtSpd(f.speed)} KTS</div>
+                  <span className="card-stat-label">SPD</span>
+                  <span className="card-stat-val">{fmtSpd(f.speed)}<span style={{fontSize:8,color:"#664400"}}>KTS</span></span>
                 </div>
                 <div className="card-stat">
-                  <div className="card-stat-label">HEADING</div>
-                  <div className="card-stat-val">{getHeading(f.track)}</div>
+                  <span className="card-stat-label">HDG</span>
+                  <span className="card-stat-val">{getHeading(f.track)}</span>
                 </div>
                 <div className="card-stat">
-                  <div className="card-stat-label">DISTANCE</div>
-                  <div className="card-stat-val">{f.miles.toFixed(1)} MI</div>
+                  <span className="card-stat-label">DIST</span>
+                  <span className="card-stat-val">{f.miles.toFixed(1)}<span style={{fontSize:8,color:"#664400"}}>MI</span></span>
                 </div>
               </div>
 
               {/* Details button */}
-              <button className="card-details-btn"
-                onClick={e=>{e.stopPropagation();onDetails(f);}}>
-                VIEW FULL DETAILS
+              <button className="card-details-btn" onClick={e=>{e.stopPropagation();onDetails(f);}}>
+                ▸ VIEW FULL DETAILS
               </button>
             </div>
           );
