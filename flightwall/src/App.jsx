@@ -86,44 +86,69 @@ body{background:#080600;font-family:'Share Tech Mono',monospace;color:#ff9900;}
 .rbar{height:2px;background:#120c00;}
 .rfill{height:100%;background:linear-gradient(90deg,#ff6600,#ffcc00);box-shadow:0 0 8px #ff9900;transition:width 1s linear;}
 
-/* ── Ticker board (replaces scrolling ticker) ── */
+/* ── Ticker board — 3 horizontal cards ── */
 .ticker{background:#0d0900;border-bottom:2px solid #1a0f00;overflow:hidden;}
-.ticker-hdr{
-  display:grid;
-  grid-template-columns:120px 1fr 100px 90px 110px 120px;
-  padding:5px 24px;
-  font-size:8px;color:#332000;letter-spacing:3px;
+.ticker-label{
+  padding:5px 24px 4px;
+  font-size:8px;color:#554400;letter-spacing:4px;
   background:#080500;
   border-bottom:1px solid #150c00;
 }
-.ticker-hdr span:first-child{
-  grid-column: 1 / 2;
-  color:#554400;
-  font-size:9px;
-  letter-spacing:4px;
-}
-.ticker-rows{display:flex;flex-direction:column;}
-.ticker-row{
+.ticker-cards{
   display:grid;
-  grid-template-columns:120px 1fr 100px 90px 110px 120px;
-  padding:6px 24px;
-  border-bottom:1px solid #110900;
-  font-size:11px;letter-spacing:1px;align-items:center;
-  transition:background 0.15s;
+  grid-template-columns:repeat(3,1fr);
+  gap:0;
 }
-.ticker-row:hover{background:#120900;}
-.ticker-row:last-child{border-bottom:none;}
-.tk-cs{font-family:'Orbitron',monospace;font-weight:700;font-size:11px;color:#ffcc00;}
-.tk-route{color:#bb7733;overflow:hidden;text-overflow:ellipsis;white-space:nowrap;padding:0 12px;}
-.tk-route .loading{color:#332000;font-style:italic;}
-.tk-alt{color:#ffaa44;text-align:right;}
-.tk-spd{color:#997722;text-align:right;}
-.tk-hdg{color:#775522;text-align:center;}
-.tk-status{text-align:right;font-size:10px;font-weight:bold;letter-spacing:1px;}
-.tk-up{color:#44ff88;}
-.tk-dn{color:#ff5544;}
-.tk-cruise{color:#665522;}
-.ticker-empty{padding:8px 24px;font-size:10px;color:#221500;letter-spacing:3px;}
+.tk-card{
+  padding:10px 16px 10px 20px;
+  border-right:1px solid #1a0f00;
+  position:relative;
+}
+.tk-card:last-child{border-right:none;}
+.tk-card::before{
+  content:'';
+  position:absolute;
+  left:0;top:0;bottom:0;width:3px;
+  background:var(--ac,#ff6600);
+  box-shadow:0 0 6px var(--ac,#ff6600);
+}
+.tk-top{display:flex;align-items:baseline;gap:8px;margin-bottom:5px;flex-wrap:wrap;}
+.tk-cs{
+  font-family:'Orbitron',monospace;font-weight:900;font-size:13px;
+  color:#ffcc00;text-shadow:0 0 10px #ffaa0066;letter-spacing:1px;
+}
+.tk-actype{font-size:10px;color:#664400;letter-spacing:1px;}
+.tk-status-badge{
+  margin-left:auto;font-size:10px;font-weight:bold;letter-spacing:1px;padding:1px 6px;
+  border-radius:2px;
+}
+.tk-dep{color:#44ff88;border:1px solid #44ff8844;background:#00ff0011;}
+.tk-arr{color:#ff5544;border:1px solid #ff554444;background:#ff000011;}
+.tk-pat{color:#665522;border:1px solid #66552244;}
+.tk-route-line{
+  font-size:12px;color:#cc8844;letter-spacing:1px;
+  margin-bottom:4px;
+  white-space:nowrap;overflow:hidden;text-overflow:ellipsis;
+}
+.tk-route-line .tk-iata{
+  font-family:'Orbitron',monospace;font-size:13px;font-weight:700;
+}
+.tk-iata.orig{color:#44aaff;}
+.tk-iata.dest{color:#ff6644;}
+.tk-arrow{color:#664400;margin:0 6px;}
+.tk-duration{font-size:10px;color:#553300;margin-left:6px;}
+.tk-stats{
+  display:flex;gap:14px;flex-wrap:wrap;
+}
+.tk-stat{display:flex;flex-direction:column;gap:1px;}
+.tk-stat-label{font-size:7px;color:#443300;letter-spacing:2px;}
+.tk-stat-val{font-size:11px;color:#ffaa44;font-family:'Orbitron',monospace;}
+.tk-stat-val.grn{color:#44ff88;}
+.tk-stat-val.red{color:#ff5544;}
+.ticker-empty{
+  padding:10px 24px;font-size:10px;color:#221500;letter-spacing:3px;
+  grid-column:1/-1;
+}
 
 /* ── Board ── */
 .bhdr{display:grid;grid-template-columns:1.6fr 2fr 1.4fr 1.1fr 1.2fr 0.9fr 1.3fr;padding:9px 24px;font-size:9px;color:#553300;letter-spacing:3px;border-bottom:1px solid #180e00;background:#0a0700;}
@@ -194,8 +219,8 @@ body{background:#080600;font-family:'Share Tech Mono',monospace;color:#ff9900;}
 @media(max-width:700px){
   .bhdr,.frow{grid-template-columns:2fr 2fr 1.5fr 1.2fr;}
   .bhdr span:nth-child(n+5),.frow .cell:nth-child(n+5){display:none;}
-  .ticker-hdr,.ticker-row{grid-template-columns:100px 1fr 90px 90px;}
-  .ticker-hdr span:nth-child(n+5),.ticker-row>*:nth-child(n+5){display:none;}
+  .ticker-cards{grid-template-columns:1fr;}
+  .tk-card{border-right:none;border-bottom:1px solid #1a0f00;}
   .stats-grid{grid-template-columns:1fr 1fr;}
   .stat-cell:nth-child(3){border-top:1px solid #1a0f00;}
 }
@@ -206,101 +231,141 @@ body{background:#080600;font-family:'Share Tech Mono',monospace;color:#ff9900;}
 // actively climbing (departing) or descending (arriving), sorted by distance
 
 function TickerBoard({ flights, routeCache, nearbyIata }) {
-
-  // Filter to only flights serving nearby airports:
-  // 1. Must have a known route with origin or destination matching a nearby airport
-  // 2. Must be under 18,000ft and actively climbing (departing) or descending (arriving)
   const hasNearby = nearbyIata && nearbyIata.size > 0;
 
   const localFlights = flights
     .filter(f => {
-      // Altitude + vertical rate check
       if (!f.alt || f.alt > 18000) return false;
       const vr = f.vrate ? Math.round(f.vrate) : 0;
       if (Math.abs(vr) < 150) return false;
-
-      // If we have nearby airport data, check route matches
       if (hasNearby) {
         const cached = f.callsign ? routeCache[f.callsign] : null;
-        // If route not loaded yet, include it tentatively (will disappear if no match)
-        if (!cached) return true;
+        if (!cached) return true; // tentative while loading
         const route = cached?.route;
-        if (!route) return false; // route loaded but nothing found — exclude
-        const originMatch = route.origin?.iata && nearbyIata.has(route.origin.iata);
+        if (!route) return false;
+        const originMatch = route.origin?.iata      && nearbyIata.has(route.origin.iata);
         const destMatch   = route.destination?.iata && nearbyIata.has(route.destination.iata);
         return originMatch || destMatch;
       }
-
-      return true; // fallback if no airport data
+      return true;
     })
     .sort((a, b) => a.miles - b.miles)
     .slice(0, 3);
 
+  const apList = hasNearby ? Array.from(nearbyIata).join(" · ") : "";
+
+  // Estimate flight duration from distance between origin/dest airports (rough great circle)
+  const estDuration = (route) => {
+    if (!route?.origin || !route?.destination) return null;
+    const d = haversine(
+      route.origin.lat      ?? 0, route.origin.lon      ?? 0,
+      route.destination.lat ?? 0, route.destination.lon ?? 0
+    );
+    if (!d || d < 10) return null;
+    const hrs = d / 480; // ~480mph cruise
+    if (hrs < 1) return `~${Math.round(hrs * 60)}MIN`;
+    return `~${Math.floor(hrs)}H${Math.round((hrs % 1) * 60).toString().padStart(2,"0")}M`;
+  };
+
+  const CARD_ACCENT = {
+    UAL:"#1a44bb",DAL:"#cc0022",AAL:"#0066cc",SWA:"#dd8800",
+    JBU:"#0055aa",FDX:"#8800cc",UPS:"#5c3317",NKS:"#ccbb00"
+  };
+
   if (!localFlights.length) {
     const cruising = flights.filter(f => f.alt > 18000).length;
-    const apList = nearbyIata && nearbyIata.size > 0
-      ? Array.from(nearbyIata).join(" · ")
-      : null;
     return (
       <div className="ticker">
-        <div className="ticker-hdr">
-          <span>LOCAL ARRIVALS / DEPARTURES{apList ? ` · WATCHING: ${apList}` : ""}</span>
+        <div className="ticker-label">
+          LOCAL ARRIVALS / DEPARTURES{apList ? ` · WATCHING: ${apList}` : ""}
         </div>
-        <div className="ticker-empty">
-          {flights.length === 0
-            ? "SCANNING FOR LOCAL TRAFFIC..."
-            : `NO LOCAL ARRIVALS OR DEPARTURES RIGHT NOW · ${cruising} CRUISING OVERHEAD`}
+        <div className="ticker-cards">
+          <div className="ticker-empty">
+            {flights.length === 0
+              ? "SCANNING FOR LOCAL TRAFFIC..."
+              : `NO LOCAL ARRIVALS OR DEPARTURES RIGHT NOW · ${cruising} CRUISING OVERHEAD`}
+          </div>
         </div>
       </div>
     );
   }
 
-  const apList = nearbyIata && nearbyIata.size > 0
-    ? Array.from(nearbyIata).join(" · ")
-    : "";
-
   return (
     <div className="ticker">
-      <div className="ticker-hdr">
-        <span>ARRIVALS / DEPARTURES{apList ? ` · ${apList}` : ""}</span>
-        <span style={{paddingLeft:12}}>ROUTE / AIRCRAFT</span>
-        <span style={{textAlign:"right"}}>ALTITUDE</span>
-        <span style={{textAlign:"right"}}>SPEED</span>
-        <span style={{textAlign:"center"}}>HEADING</span>
-        <span style={{textAlign:"right"}}>STATUS</span>
+      <div className="ticker-label">
+        LOCAL ARRIVALS / DEPARTURES{apList ? ` · ${apList}` : ""}
       </div>
-      <div className="ticker-rows">
+      <div className="ticker-cards">
         {localFlights.map(f => {
-          const vrFpm    = f.vrate ? Math.round(f.vrate) : 0;
-          const isDep    = vrFpm >  150; // climbing = departing
-          const isArr    = vrFpm < -150; // descending = arriving
-          const statusCls= isDep ? "tk-status tk-up" : isArr ? "tk-status tk-dn" : "tk-status tk-cruise";
-          const statusTxt= isDep ? "▲ DEPARTING" : isArr ? "▼ ARRIVING" : "→ PATTERN";
+          const vrFpm  = f.vrate ? Math.round(f.vrate) : 0;
+          const isDep  = vrFpm >  150;
+          const isArr  = vrFpm < -150;
+          const badge  = isDep ? "tk-status-badge tk-dep" : isArr ? "tk-status-badge tk-arr" : "tk-status-badge tk-pat";
+          const label  = isDep ? "▲ DEPARTING" : isArr ? "▼ ARRIVING" : "→ PATTERN";
 
-          const cached = f.callsign ? routeCache[f.callsign] : undefined;
-          let routeDisp = "";
-          if (cached === undefined && f.callsign) {
-            routeDisp = "···";
-          } else if (cached?.route?.origin && cached?.route?.destination) {
-            const o = cached.route.origin.city      || cached.route.origin.iata;
-            const d = cached.route.destination.city || cached.route.destination.iata;
-            routeDisp = `${o.toUpperCase()} → ${d.toUpperCase()}`;
-          } else if (cached?.aircraft?.type) {
-            routeDisp = cached.aircraft.type.toUpperCase();
-          } else if (f.type) {
-            routeDisp = f.type;
-          } else {
-            routeDisp = getAirline(f.callsign);
-          }
+          const cached   = f.callsign ? routeCache[f.callsign] : undefined;
+          const route    = cached?.route;
+          const aircraft = cached?.aircraft;
+          const acType   = aircraft?.type || f.type || null;
+          const duration = estDuration(route);
+
+          const accentKey = (f.callsign||"").slice(0,3).toUpperCase();
+          const accent    = CARD_ACCENT[accentKey] || "#ff6600";
+
+          // Vertical rate color
+          const vrColor = isDep ? "grn" : isArr ? "red" : "";
 
           return (
-            <div className="ticker-row" key={f.icao}>
-              <div className="tk-cs">{f.callsign || f.icao.toUpperCase()}</div>
-              <div className="tk-route">{routeDisp}</div>
-              <div className="tk-alt">{feetAlt(f.alt)} FT</div>
-              <div className="tk-spd">{fmtSpd(f.speed)} KTS</div>
-              <div className="tk-hdg">{getHeading(f.track)} {f.track ? Math.round(f.track)+"°" : ""}</div>
-              <div className={statusCls}>{statusTxt}</div>
+            <div className="tk-card" key={f.icao} style={{"--ac": accent}}>
+
+              {/* Row 1: Callsign + aircraft type + status badge */}
+              <div className="tk-top">
+                <span className="tk-cs">{f.callsign || f.icao.toUpperCase()}</span>
+                {acType && <span className="tk-actype">{acType.toUpperCase()}</span>}
+                <span className={badge}>{label}</span>
+              </div>
+
+              {/* Row 2: Route origin → destination + duration */}
+              <div className="tk-route-line">
+                {cached === undefined && f.callsign ? (
+                  <span style={{color:"#332000"}}>···</span>
+                ) : route?.origin && route?.destination ? (
+                  <>
+                    <span className="tk-iata orig">{route.origin.iata}</span>
+                    <span className="tk-arrow">→</span>
+                    <span className="tk-iata dest">{route.destination.iata}</span>
+                    <span style={{color:"#885500",fontSize:10,marginLeft:6}}>
+                      {route.origin.city?.toUpperCase()} → {route.destination.city?.toUpperCase()}
+                    </span>
+                    {duration && <span className="tk-duration">{duration}</span>}
+                  </>
+                ) : (
+                  <span style={{color:"#443300"}}>{getAirline(f.callsign)}</span>
+                )}
+              </div>
+
+              {/* Row 3: Stats */}
+              <div className="tk-stats">
+                <div className="tk-stat">
+                  <span className="tk-stat-label">SPEED</span>
+                  <span className="tk-stat-val">{fmtSpd(f.speed)} KTS</span>
+                </div>
+                <div className="tk-stat">
+                  <span className="tk-stat-label">HEADING</span>
+                  <span className="tk-stat-val">{getHeading(f.track)} {f.track ? Math.round(f.track)+"°" : "---"}</span>
+                </div>
+                <div className="tk-stat">
+                  <span className="tk-stat-label">ALTITUDE</span>
+                  <span className="tk-stat-val">{feetAlt(f.alt)} FT</span>
+                </div>
+                <div className="tk-stat">
+                  <span className="tk-stat-label">VERT RATE</span>
+                  <span className={`tk-stat-val ${vrColor}`}>
+                    {isDep ? `▲ ${vrFpm}` : isArr ? `▼ ${Math.abs(vrFpm)}` : "LEVEL"} FPM
+                  </span>
+                </div>
+              </div>
+
             </div>
           );
         })}
