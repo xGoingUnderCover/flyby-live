@@ -187,9 +187,11 @@ body{background:#080600;font-family:'Share Tech Mono',monospace;color:#ff9900;}
 .card-stat{display:flex;align-items:baseline;gap:3px;}
 .card-stat-label{font-size:8px;color:#664400;letter-spacing:1px;white-space:nowrap;}
 .card-stat-val{font-size:11px;color:#ffaa44;font-family:'Orbitron',monospace;white-space:nowrap;}
-.card-details-btn{width:100%;background:none;border:1px solid #1a0f00;color:#553300;font-family:'Share Tech Mono',monospace;font-size:9px;letter-spacing:2px;padding:3px;cursor:pointer;transition:all 0.15s;}
-.card-details-btn:hover{border-color:#ff9900;color:#ff9900;background:#0f0800;}
+
 .no-local{padding:14px;text-align:center;font-size:11px;color:#332200;letter-spacing:3px;}
+.card-map-pin{font-size:9px;margin-left:5px;opacity:0.4;transition:opacity 0.2s;vertical-align:middle;}
+.flight-card:hover .card-map-pin{opacity:0.9;}
+.flight-card.sel .card-map-pin{opacity:1;}
 
 /* ── Map ── */
 .map-section{border-bottom:2px solid #1a0f00;}
@@ -517,13 +519,14 @@ function FlightCards({ flights, routeCache, location, selectedId, onSelect, onDe
             <div key={f.icao}
               className={`flight-card${isSel?" sel":""}${isOverhead?" overhead":""}`}
               style={{"--ac":getAirlineColor(f.callsign)}}
-              onClick={()=>onSelect(isSel?null:f.icao)}>
+              onClick={()=>{onSelect(isSel?null:f.icao);if(!isSel)onDetails(f);}}>
 
-              {/* Row 1: Callsign + status badge */}
+              {/* Row 1: Callsign + map pin + status badge */}
               <div className="card-top">
                 <div className="card-cs">
                   {isOverhead&&<span style={{fontSize:9,color:"#44ff88",marginRight:4}}>●</span>}
                   {f.callsign||f.icao.toUpperCase()}
+                  <span className="card-map-pin" title="Click to locate on map">📍</span>
                 </div>
                 <div className={statusCls}>{statusTxt}</div>
               </div>
@@ -573,10 +576,7 @@ function FlightCards({ flights, routeCache, location, selectedId, onSelect, onDe
                 </div>
               </div>
 
-              {/* Details button */}
-              <button className="card-details-btn" onClick={e=>{e.stopPropagation();onDetails(f);}}>
-                ▸ VIEW FULL DETAILS
-              </button>
+
             </div>
           );
         })}
@@ -680,16 +680,29 @@ function LiveMap({ location, flights, nearbyAirports, selectedId, onSelectAp }) 
 function FidsBoard({ flights, routeCache, nearbyAirports, nearbyIata, filterAp, onFilterAp, onDetails }) {
   if (!nearbyAirports||nearbyAirports.length===0) return null;
 
+  // Top 5 closest airports, filtered to only those with tracked flights
+  // (unless a specific airport is selected via filter tab)
+  const top5 = nearbyAirports.slice(0, 5);
+
+  const airportsWithFlights = top5.filter(ap => {
+    return flights.some(f => {
+      const cached = f.callsign ? routeCache[f.callsign] : null;
+      if (!cached?.route) return false;
+      return cached.route.origin?.iata === ap.iata || cached.route.destination?.iata === ap.iata;
+    });
+  });
+
+  // If filtering to a specific airport, show it regardless of whether it has flights
   const visibleAirports = filterAp
-    ? nearbyAirports.filter(ap=>ap.iata===filterAp)
-    : nearbyAirports.slice(0,4);
+    ? top5.filter(ap => ap.iata === filterAp)
+    : airportsWithFlights;
 
   return (
     <div className="fids-section">
       <div className="ap-filter-bar">
         <span className="ap-filter-label">AIRPORT:</span>
         <button className={`ap-tab all${!filterAp?" active":""}`} onClick={()=>onFilterAp(null)}>ALL</button>
-        {nearbyAirports.map(ap=>(
+        {nearbyAirports.slice(0,5).map(ap=>(
           <button key={ap.iata}
             className={`ap-tab${filterAp===ap.iata?" active":""}`}
             onClick={()=>onFilterAp(filterAp===ap.iata?null:ap.iata)}
@@ -769,7 +782,11 @@ function FidsBoard({ flights, routeCache, nearbyAirports, nearbyIata, filterAp, 
           );
         })}
         {visibleAirports.length===0&&(
-          <div className="fids-none">NO AIRPORT DATA AVAILABLE</div>
+          <div className="fids-none">
+            {filterAp
+              ? `NO TRACKED FLIGHTS FOR ${filterAp} RIGHT NOW`
+              : "NO LOCAL AIRPORT TRAFFIC TRACKED YET · ROUTE DATA LOADS AS FLIGHTS ARE IDENTIFIED"}
+          </div>
         )}
       </div>
     </div>
