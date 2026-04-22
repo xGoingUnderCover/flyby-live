@@ -154,49 +154,56 @@ body{background:#080600;font-family:'Share Tech Mono',monospace;color:#ff9900;}
 .overhead-flight{font-family:'Orbitron',monospace;font-size:11px;font-weight:700;color:#44ff88;text-shadow:0 0 8px #44ff8888;background:#00ff0011;border:1px solid #44ff8833;padding:2px 8px;cursor:pointer;transition:background 0.15s;}
 .overhead-flight:hover{background:#00ff0022;}
 
-/* ── Top 9 flight cards ── */
-.cards-section{padding:10px 14px;background:#090700;border-bottom:2px solid #1a0f00;}
-.cards-title{font-size:8px;color:#443300;letter-spacing:4px;font-family:'Orbitron',monospace;margin-bottom:8px;}
-.cards-grid{display:grid;grid-template-columns:repeat(3,1fr);gap:8px;}
-.flight-card{background:#0c0900;border:1px solid #2a1800;padding:8px 10px;cursor:pointer;transition:all 0.15s;position:relative;overflow:hidden;}
-.flight-card:hover{background:#160d00;border-color:#443300;}
-.flight-card.sel{background:#1a1000;border-color:#ffaa00;box-shadow:0 0 12px #ff880033;}
-.flight-card.overhead{background:#0c1800;border-color:#44ff8866;box-shadow:0 0 10px #44ff8822;}
+/* ── Top 3 cards left + map right ── */
+.top-section{display:grid;grid-template-columns:50% 50%;border-bottom:2px solid #1a0f00;}
+.cards-col{display:flex;flex-direction:column;border-right:1px solid #1a0f00;background:#090700;}
+.cards-col-title{font-size:8px;color:#443300;letter-spacing:4px;font-family:'Orbitron',monospace;padding:8px 14px 6px;background:#080500;border-bottom:1px solid #1a0f00;flex-shrink:0;}
+.flight-card{
+  flex:1;background:#0c0900;border-bottom:1px solid #1a0f00;
+  padding:10px 14px;cursor:pointer;
+  transition:all 0.15s;position:relative;overflow:hidden;
+}
+.flight-card:last-child{border-bottom:none;}
+.flight-card:hover{background:#160d00;}
+.flight-card.sel{background:#1a1000;border-left:3px solid #ffaa00;}
+.flight-card.overhead{background:#0c1800;border-left:3px solid #44ff88;}
 .flight-card::before{content:'';position:absolute;left:0;top:0;bottom:0;width:3px;background:var(--ac,#ff6600);box-shadow:0 0 6px var(--ac,#ff6600);}
-.card-top{display:flex;align-items:center;justify-content:space-between;margin-bottom:4px;}
-.card-cs{font-family:'Orbitron',monospace;font-weight:900;font-size:13px;color:#ffcc00;text-shadow:0 0 10px #ffaa0055;letter-spacing:1px;white-space:nowrap;overflow:hidden;text-overflow:ellipsis;max-width:62%;}
-.card-status{font-size:9px;font-weight:bold;letter-spacing:1px;padding:1px 6px;border-radius:2px;white-space:nowrap;flex-shrink:0;}
+.flight-card.sel::before{display:none;}
+.flight-card.overhead::before{display:none;}
+.card-top{display:flex;align-items:center;justify-content:space-between;margin-bottom:5px;}
+.card-cs{font-family:'Orbitron',monospace;font-weight:900;font-size:15px;color:#ffcc00;text-shadow:0 0 10px #ffaa0055;letter-spacing:1px;white-space:nowrap;overflow:hidden;text-overflow:ellipsis;max-width:65%;display:flex;align-items:center;gap:5px;}
+.card-status{font-size:9px;font-weight:bold;letter-spacing:1px;padding:2px 7px;border-radius:2px;white-space:nowrap;flex-shrink:0;}
 .card-dep{color:#44ff88;background:#00ff0011;border:1px solid #44ff8833;}
 .card-arr{color:#ff5544;background:#ff000011;border:1px solid #ff554433;}
 .card-pat{color:#886633;background:#88660011;border:1px solid #88663333;}
-.card-meta{display:flex;align-items:center;gap:5px;margin-bottom:3px;min-width:0;}
-.al-badge{display:inline-block;padding:1px 5px;font-size:8px;font-weight:bold;letter-spacing:1px;border-radius:2px;font-family:'Orbitron',monospace;flex-shrink:0;}
-.card-airline-name{font-size:11px;color:#cc8844;overflow:hidden;text-overflow:ellipsis;white-space:nowrap;flex:1;}
-.card-aircraft-tag{font-size:9px;color:#553300;flex-shrink:0;white-space:nowrap;margin-left:4px;}
-.card-route{font-size:11px;margin-bottom:4px;display:flex;align-items:center;gap:4px;min-width:0;}
-.card-iata{font-family:'Orbitron',monospace;font-size:12px;font-weight:700;flex-shrink:0;}
+.card-meta{display:flex;align-items:center;gap:6px;margin-bottom:5px;min-width:0;}
+.al-badge{display:inline-block;padding:1px 6px;font-size:9px;font-weight:bold;letter-spacing:1px;border-radius:2px;font-family:'Orbitron',monospace;flex-shrink:0;}
+.card-airline-name{font-size:12px;color:#cc8844;overflow:hidden;text-overflow:ellipsis;white-space:nowrap;flex:1;}
+.card-aircraft-tag{font-size:10px;color:#553300;flex-shrink:0;white-space:nowrap;}
+.card-route{font-size:12px;margin-bottom:6px;display:flex;align-items:center;gap:5px;min-width:0;}
+.card-iata{font-family:'Orbitron',monospace;font-size:13px;font-weight:700;flex-shrink:0;}
 .card-iata.orig{color:#44aaff;}
 .card-iata.dest{color:#ff6644;}
 .card-arrow{color:#554400;flex-shrink:0;}
 .card-city{font-size:9px;color:#443300;white-space:nowrap;overflow:hidden;text-overflow:ellipsis;}
-.card-alt-row{display:flex;align-items:center;gap:8px;margin-bottom:3px;}
-.card-alt-num{font-family:'Orbitron',monospace;font-size:12px;color:#ffdd55;white-space:nowrap;flex-shrink:0;}
-.card-alt-bar{flex:1;height:4px;background:#160d00;border-radius:2px;overflow:hidden;}
+.card-alt-row{display:flex;align-items:center;gap:10px;margin-bottom:5px;}
+.card-alt-num{font-family:'Orbitron',monospace;font-size:14px;color:#ffdd55;white-space:nowrap;flex-shrink:0;}
+.card-alt-bar{flex:1;height:5px;background:#160d00;border-radius:2px;overflow:hidden;}
 .card-alt-fill{height:100%;border-radius:2px;background:linear-gradient(90deg,#ff4400,#ffcc00);transition:width 0.5s;}
-.card-stats-row{display:flex;gap:12px;align-items:center;margin-bottom:5px;}
-.card-stat{display:flex;align-items:baseline;gap:3px;}
-.card-stat-label{font-size:8px;color:#664400;letter-spacing:1px;white-space:nowrap;}
-.card-stat-val{font-size:11px;color:#ffaa44;font-family:'Orbitron',monospace;white-space:nowrap;}
+.card-stats-row{display:flex;gap:16px;align-items:center;}
+.card-stat{display:flex;align-items:baseline;gap:4px;}
+.card-stat-label{font-size:9px;color:#664400;letter-spacing:1px;white-space:nowrap;}
+.card-stat-val{font-size:12px;color:#ffaa44;font-family:'Orbitron',monospace;white-space:nowrap;}
+.card-map-pin{font-size:10px;opacity:0.4;transition:opacity 0.2s;}
+.flight-card:hover .card-map-pin,.flight-card.sel .card-map-pin{opacity:1;}
+.no-local{padding:20px;text-align:center;font-size:11px;color:#332200;letter-spacing:3px;flex:1;display:flex;align-items:center;justify-content:center;}
 
-.no-local{padding:14px;text-align:center;font-size:11px;color:#332200;letter-spacing:3px;}
-.card-map-pin{font-size:9px;margin-left:5px;opacity:0.4;transition:opacity 0.2s;vertical-align:middle;}
-.flight-card:hover .card-map-pin{opacity:0.9;}
-.flight-card.sel .card-map-pin{opacity:1;}
-
-/* ── Map ── */
+/* ── Map panel (right side) ── */
+/* ── Map panel (inside top-section right col) ── */
 .map-section{border-bottom:2px solid #1a0f00;}
-.map-title{font-size:8px;color:#443300;letter-spacing:3px;font-family:'Orbitron',monospace;padding:7px 16px 5px;background:#090700;border-bottom:1px solid #1a0f00;}
-.map-container{height:480px;position:relative;}
+.map-title{font-size:8px;color:#443300;letter-spacing:3px;font-family:'Orbitron',monospace;padding:7px 16px 5px;background:#090700;border-bottom:1px solid #1a0f00;flex-shrink:0;}
+.map-container{height:100%;min-height:300px;position:relative;}
+.map-panel-right{display:flex;flex-direction:column;overflow:hidden;}
 .leaflet-container{background:#0a0800 !important;}
 .leaflet-tile{filter:invert(1) hue-rotate(180deg) saturate(0.4) brightness(0.5);}
 .leaflet-control-attribution{display:none !important;}
@@ -480,110 +487,103 @@ function DetailOverlay({ flight, routeInfo, onClose, onShare }) {
   );
 }
 
-// ─── Top 9 flight cards ───────────────────────────────────────────────────────
-function FlightCards({ flights, routeCache, location, selectedId, onSelect, onDetails }) {
-  const top9 = flights.slice(0,9);
-
-  if (!top9.length) {
-    return (
-      <div className="cards-section">
-        <div className="cards-title">NEAREST AIRCRAFT</div>
-        <div className="no-local">
-          {flights.length===0
-            ? <div className="ldots">SCANNING<span>.</span><span>.</span><span>.</span></div>
-            : "NO AIRCRAFT IN RANGE"}
-        </div>
-      </div>
-    );
-  }
+// ─── Top 3 flight cards (stacked left) ─────────────────────────────────────
+function FlightCards({ flights, location, routeCache, selectedId, onSelect }) {
+  const top3 = flights.slice(0, 3);
 
   return (
-    <div className="cards-section">
-      <div className="cards-title">NEAREST AIRCRAFT · SORTED BY DISTANCE</div>
-      <div className="cards-grid">
-        {top9.map(f=>{
-          const vrFpm=f.vrate?Math.round(f.vrate):0;
-          const isDep=vrFpm>150,isArr=vrFpm<-150;
-          const statusCls=isDep?"card-status card-dep":isArr?"card-status card-arr":"card-status card-pat";
-          const statusTxt=isDep?"▲ CLIMBING":isArr?"▼ DESCENDING":"→ CRUISING";
-          const cached=f.callsign?routeCache[f.callsign]:undefined;
-          const route=cached?.route;
-          const aircraft=cached?.aircraft;
-          const alColor=getAirlineColor(f.callsign);
-          const altPct=Math.min(100,((f.alt||0)/40000)*100);
-          const isOverhead=haversine(location.lat,location.lon,f.lat||0,f.lon||0)<5;
-          const isSel=selectedId===f.icao;
-          const acType=aircraft?.type||f.type||"";
+    <div className="cards-col">
+      <div className="cards-col-title">NEAREST AIRCRAFT</div>
+      {top3.length === 0 ? (
+        <div className="no-local">
+          <div className="ldots">SCANNING<span>.</span><span>.</span><span>.</span></div>
+        </div>
+      ) : top3.map(f => {
+        const vrFpm    = f.vrate ? Math.round(f.vrate) : 0;
+        const isDep    = vrFpm >  150;
+        const isArr    = vrFpm < -150;
+        const statusCls= isDep?"card-status card-dep":isArr?"card-status card-arr":"card-status card-pat";
+        const statusTxt= isDep?"▲ CLIMBING":isArr?"▼ DESCENDING":"→ CRUISING";
+        const cached   = f.callsign ? routeCache[f.callsign] : undefined;
+        const route    = cached?.route;
+        const aircraft = cached?.aircraft;
+        const alColor  = getAirlineColor(f.callsign);
+        const altPct   = Math.min(100, ((f.alt||0)/40000)*100);
+        const isOverhead = haversine(location.lat,location.lon,f.lat||0,f.lon||0) < 5;
+        const isSel    = selectedId === f.icao;
+        const acType   = aircraft?.type || f.type || "";
 
-          return (
-            <div key={f.icao}
-              className={`flight-card${isSel?" sel":""}${isOverhead?" overhead":""}`}
-              style={{"--ac":getAirlineColor(f.callsign)}}
-              onClick={()=>{onSelect(isSel?null:f.icao);if(!isSel)onDetails(f);}}>
+        return (
+          <div key={f.icao}
+            className={`flight-card${isSel?" sel":""}${isOverhead?" overhead":""}`}
+            style={{"--ac": getAirlineColor(f.callsign)}}
+            onClick={() => onSelect(isSel ? null : f.icao)}>
 
-              {/* Row 1: Callsign + map pin + status badge */}
-              <div className="card-top">
-                <div className="card-cs">
-                  {isOverhead&&<span style={{fontSize:9,color:"#44ff88",marginRight:4}}>●</span>}
-                  {f.callsign||f.icao.toUpperCase()}
-                  <span className="card-map-pin" title="Click to locate on map">📍</span>
-                </div>
-                <div className={statusCls}>{statusTxt}</div>
+            {/* Row 1: Callsign + map pin + status */}
+            <div className="card-top">
+              <div className="card-cs">
+                {isOverhead && <span style={{fontSize:9,color:"#44ff88"}}>●</span>}
+                {f.callsign || f.icao.toUpperCase()}
+                <span className="card-map-pin" title="Locating on map">📍</span>
               </div>
-
-              {/* Row 2: Airline badge + name + aircraft type */}
-              <div className="card-meta">
-                <span className="al-badge" style={{background:alColor+"22",border:`1px solid ${alColor}44`,color:alColor}}>
-                  {(f.callsign||"???").slice(0,3).toUpperCase()}
-                </span>
-                <span className="card-airline-name">
-                  {cached===undefined&&f.callsign?"···":getAirline(f.callsign,route?.airline)}
-                </span>
-                {acType&&<span className="card-aircraft-tag">· {acType}</span>}
-              </div>
-
-              {/* Row 3: Route — only if known */}
-              {route?.origin&&route?.destination?(
-                <div className="card-route">
-                  <span className="card-iata orig">{route.origin.iata}</span>
-                  <span className="card-arrow">→</span>
-                  <span className="card-iata dest">{route.destination.iata}</span>
-                  <span className="card-city">&nbsp;{route.origin.city?.slice(0,8).toUpperCase()} → {route.destination.city?.slice(0,8).toUpperCase()}</span>
-                </div>
-              ):cached===undefined&&f.callsign?(
-                <div className="card-route" style={{color:"#332000",fontSize:10}}>LOOKING UP ROUTE···</div>
-              ):null}
-
-              {/* Row 4: Altitude number + bar */}
-              <div className="card-alt-row">
-                <div className="card-alt-num">{feetAlt(f.alt)}<span style={{fontSize:8,color:"#664400",marginLeft:2}}>FT</span></div>
-                <div className="card-alt-bar"><div className="card-alt-fill" style={{width:`${altPct}%`}}/></div>
-              </div>
-
-              {/* Row 5: Speed · Heading · Distance on one line */}
-              <div className="card-stats-row">
-                <div className="card-stat">
-                  <span className="card-stat-label">SPD</span>
-                  <span className="card-stat-val">{fmtSpd(f.speed)}<span style={{fontSize:8,color:"#664400"}}>KTS</span></span>
-                </div>
-                <div className="card-stat">
-                  <span className="card-stat-label">HDG</span>
-                  <span className="card-stat-val">{getHeading(f.track)}</span>
-                </div>
-                <div className="card-stat">
-                  <span className="card-stat-label">DIST</span>
-                  <span className="card-stat-val">{f.miles.toFixed(1)}<span style={{fontSize:8,color:"#664400"}}>MI</span></span>
-                </div>
-              </div>
-
-
+              <div className={statusCls}>{statusTxt}</div>
             </div>
-          );
-        })}
-      </div>
+
+            {/* Row 2: Airline badge + name + aircraft type */}
+            <div className="card-meta">
+              <span className="al-badge" style={{background:alColor+"22",border:`1px solid ${alColor}44`,color:alColor}}>
+                {(f.callsign||"???").slice(0,3).toUpperCase()}
+              </span>
+              <span className="card-airline-name">
+                {cached===undefined&&f.callsign ? "···" : getAirline(f.callsign, route?.airline)}
+              </span>
+              {acType && <span className="card-aircraft-tag">· {acType}</span>}
+            </div>
+
+            {/* Row 3: Route */}
+            {route?.origin && route?.destination ? (
+              <div className="card-route">
+                <span className="card-iata orig">{route.origin.iata}</span>
+                <span className="card-arrow">→</span>
+                <span className="card-iata dest">{route.destination.iata}</span>
+                <span className="card-city">&nbsp;{route.origin.city?.slice(0,9).toUpperCase()} → {route.destination.city?.slice(0,9).toUpperCase()}</span>
+              </div>
+            ) : cached===undefined && f.callsign ? (
+              <div className="card-route" style={{color:"#332000",fontSize:10}}>LOOKING UP ROUTE···</div>
+            ) : null}
+
+            {/* Row 4: Altitude + bar */}
+            <div className="card-alt-row">
+              <div className="card-alt-num">
+                {feetAlt(f.alt)}<span style={{fontSize:9,color:"#664400",marginLeft:2}}>FT</span>
+              </div>
+              <div className="card-alt-bar">
+                <div className="card-alt-fill" style={{width:`${altPct}%`}}/>
+              </div>
+            </div>
+
+            {/* Row 5: Speed · Heading · Distance */}
+            <div className="card-stats-row">
+              <div className="card-stat">
+                <span className="card-stat-label">SPD</span>
+                <span className="card-stat-val">{fmtSpd(f.speed)}<span style={{fontSize:9,color:"#664400"}}>KTS</span></span>
+              </div>
+              <div className="card-stat">
+                <span className="card-stat-label">HDG</span>
+                <span className="card-stat-val">{getHeading(f.track)}</span>
+              </div>
+              <div className="card-stat">
+                <span className="card-stat-label">DIST</span>
+                <span className="card-stat-val">{f.miles.toFixed(1)}<span style={{fontSize:9,color:"#664400"}}>MI</span></span>
+              </div>
+            </div>
+          </div>
+        );
+      })}
     </div>
   );
 }
+
 
 // ─── Live map ─────────────────────────────────────────────────────────────────
 function LiveMap({ location, flights, nearbyAirports, selectedId, onSelectAp }) {
@@ -669,8 +669,8 @@ function LiveMap({ location, flights, nearbyAirports, selectedId, onSelectAp }) 
   },[flights,selectedId]);
 
   return (
-    <div className="map-section">
-      <div className="map-title">LIVE MAP · {(nearbyAirports||[]).length} AIRPORTS · {flights.length} AIRCRAFT · CLICK ANY PLANE OR AIRPORT</div>
+    <div className="map-panel-right">
+      <div className="map-title">LIVE MAP · {(nearbyAirports||[]).length} AIRPORTS · {flights.length} AIRCRAFT · CLICK TO LOCATE</div>
       <div className="map-container" ref={mapRef}/>
     </div>
   );
@@ -944,24 +944,23 @@ function Board({ location, onReset }) {
       {/* Overhead alert */}
       <OverheadBanner flights={flights} location={location} onSelect={setSelectedId}/>
 
-      {/* Top 9 cards */}
-      <FlightCards
-        flights={flights}
-        routeCache={routeCache}
-        location={location}
-        selectedId={selectedId}
-        onSelect={setSelectedId}
-        onDetails={setDetailFlight}
-      />
-
-      {/* Map */}
-      <LiveMap
-        location={location}
-        flights={flights}
-        nearbyAirports={location.nearbyAirports}
-        selectedId={selectedId}
-        onSelectAp={setFilterAp}
-      />
+      {/* Top section: 3 cards left + map right */}
+      <div className="top-section">
+        <FlightCards
+          flights={flights}
+          routeCache={routeCache}
+          location={location}
+          selectedId={selectedId}
+          onSelect={setSelectedId}
+        />
+        <LiveMap
+          location={location}
+          flights={flights}
+          nearbyAirports={location.nearbyAirports}
+          selectedId={selectedId}
+          onSelectAp={setFilterAp}
+        />
+      </div>
 
       {/* Airport FIDS board */}
       <FidsBoard
