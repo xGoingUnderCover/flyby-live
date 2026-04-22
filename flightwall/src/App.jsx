@@ -205,39 +205,64 @@ body{background:#080600;font-family:'Share Tech Mono',monospace;color:#ff9900;}
 // Shows only top 3 local arrivals/departures — flights below 18,000ft
 // actively climbing (departing) or descending (arriving), sorted by distance
 
-function TickerBoard({ flights, routeCache }) {
+function TickerBoard({ flights, routeCache, nearbyIata }) {
 
-  // Filter to only local traffic — under 18,000ft AND actively climbing/descending
+  // Filter to only flights serving nearby airports:
+  // 1. Must have a known route with origin or destination matching a nearby airport
+  // 2. Must be under 18,000ft and actively climbing (departing) or descending (arriving)
+  const hasNearby = nearbyIata && nearbyIata.size > 0;
+
   const localFlights = flights
     .filter(f => {
-      if (!f.alt || f.alt > 18000) return false; // ignore high cruisers
+      // Altitude + vertical rate check
+      if (!f.alt || f.alt > 18000) return false;
       const vr = f.vrate ? Math.round(f.vrate) : 0;
-      return vr > 150 || vr < -150; // must be climbing or descending
+      if (Math.abs(vr) < 150) return false;
+
+      // If we have nearby airport data, check route matches
+      if (hasNearby) {
+        const cached = f.callsign ? routeCache[f.callsign] : null;
+        // If route not loaded yet, include it tentatively (will disappear if no match)
+        if (!cached) return true;
+        const route = cached?.route;
+        if (!route) return false; // route loaded but nothing found — exclude
+        const originMatch = route.origin?.iata && nearbyIata.has(route.origin.iata);
+        const destMatch   = route.destination?.iata && nearbyIata.has(route.destination.iata);
+        return originMatch || destMatch;
+      }
+
+      return true; // fallback if no airport data
     })
-    .sort((a, b) => a.miles - b.miles) // closest first
-    .slice(0, 3); // top 3 only
+    .sort((a, b) => a.miles - b.miles)
+    .slice(0, 3);
 
   if (!localFlights.length) {
-    // Count how many are cruising overhead so we can show a helpful message
     const cruising = flights.filter(f => f.alt > 18000).length;
+    const apList = nearbyIata && nearbyIata.size > 0
+      ? Array.from(nearbyIata).join(" · ")
+      : null;
     return (
       <div className="ticker">
         <div className="ticker-hdr">
-          <span>LOCAL ARRIVALS / DEPARTURES</span>
+          <span>LOCAL ARRIVALS / DEPARTURES{apList ? ` · WATCHING: ${apList}` : ""}</span>
         </div>
         <div className="ticker-empty">
           {flights.length === 0
             ? "SCANNING FOR LOCAL TRAFFIC..."
-            : `NO LOCAL ARRIVALS OR DEPARTURES RIGHT NOW · ${cruising} AIRCRAFT CRUISING OVERHEAD`}
+            : `NO LOCAL ARRIVALS OR DEPARTURES RIGHT NOW · ${cruising} CRUISING OVERHEAD`}
         </div>
       </div>
     );
   }
 
+  const apList = nearbyIata && nearbyIata.size > 0
+    ? Array.from(nearbyIata).join(" · ")
+    : "";
+
   return (
     <div className="ticker">
       <div className="ticker-hdr">
-        <span>LOCAL ARRIVALS / DEPARTURES</span>
+        <span>ARRIVALS / DEPARTURES{apList ? ` · ${apList}` : ""}</span>
         <span style={{paddingLeft:12}}>ROUTE / AIRCRAFT</span>
         <span style={{textAlign:"right"}}>ALTITUDE</span>
         <span style={{textAlign:"right"}}>SPEED</span>
@@ -297,10 +322,17 @@ function Landing({ onSubmit }) {
     if (!/^\d{5}$/.test(z)) { setErr("Enter a valid 5-digit US zip code"); return; }
     setBusy(true); setErr("");
     try {
-      const res  = await fetch(`/api/zip?zip=${z}`);
-      const data = await res.json();
-      if (!res.ok) throw new Error(data.error || "Invalid zip code");
-      onSubmit({ zip: z, ...data });
+      const zipRes  = await fetch(`/api/zip?zip=${z}`);
+      const zipData = await zipRes.json();
+      if (!zipRes.ok) throw new Error(zipData.error || "Invalid zip code");
+      const apRes  = await fetch(`/api/airports?lat=${zipData.lat}&lon=${zipData.lon}&radius=75`);
+      const apData = apRes.ok ? await apRes.json() : { airports: [], iata_codes: [] };
+      onSubmit({
+        zip: z,
+        ...zipData,
+        nearbyAirports: apData.airports || [],
+        nearbyIata: new Set(apData.iata_codes || []),
+      });
     } catch(e) { setErr(e.message); }
     setBusy(false);
   };
@@ -447,18 +479,15 @@ function Board({ location, onReset }) {
     finally { setLoading(false); setFetching(false); }
   }, [location]);
 
-  // Fetch routes for local arrivals/departures in background
+  // Fetch routes for all low-altitude climbing/descending flights so we can filter by airport
   useEffect(() => {
-    const localFlights = flights
-      .filter(f => {
-        if (!f.alt || f.alt > 18000) return false;
-        const vr = f.vrate ? Math.round(f.vrate) : 0;
-        return vr > 150 || vr < -150;
-      })
-      .sort((a, b) => a.miles - b.miles)
-      .slice(0, 3);
+    const candidates = flights.filter(f => {
+      if (!f.alt || f.alt > 18000) return false;
+      const vr = f.vrate ? Math.round(f.vrate) : 0;
+      return Math.abs(vr) > 150;
+    }).slice(0, 10); // fetch up to 10 to find the best 3 matches
 
-    localFlights.forEach(f => {
+    candidates.forEach(f => {
       if (!f.callsign) return;
       if (routeCache[f.callsign] !== undefined) return;
       setRouteCache(c => ({ ...c, [f.callsign]: null }));
@@ -512,7 +541,7 @@ function Board({ location, onReset }) {
       {error && <div className="errbanner">⚠ {error}</div>}
 
       {/* ── Ticker board ── */}
-      <TickerBoard flights={flights} routeCache={routeCache} />
+      <TickerBoard flights={flights} routeCache={routeCache} nearbyIata={location.nearbyIata} />
 
       <div className="bhdr">
         <span>CALLSIGN</span><span>AIRLINE / TYPE</span><span>ALT (FT)</span>
