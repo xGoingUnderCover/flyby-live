@@ -96,6 +96,12 @@ body{background:#080600;font-family:'Share Tech Mono',monospace;color:#ff9900;}
   background:#080500;
   border-bottom:1px solid #150c00;
 }
+.ticker-hdr span:first-child{
+  grid-column: 1 / 2;
+  color:#554400;
+  font-size:9px;
+  letter-spacing:4px;
+}
 .ticker-rows{display:flex;flex-direction:column;}
 .ticker-row{
   display:grid;
@@ -196,12 +202,34 @@ body{background:#080600;font-family:'Share Tech Mono',monospace;color:#ff9900;}
 `;
 
 // ─── Ticker Board component ───────────────────────────────────────────────────
+// Shows only top 3 local arrivals/departures — flights below 18,000ft
+// actively climbing (departing) or descending (arriving), sorted by distance
 
 function TickerBoard({ flights, routeCache }) {
-  if (!flights.length) {
+
+  // Filter to only local traffic — under 18,000ft AND actively climbing/descending
+  const localFlights = flights
+    .filter(f => {
+      if (!f.alt || f.alt > 18000) return false; // ignore high cruisers
+      const vr = f.vrate ? Math.round(f.vrate) : 0;
+      return vr > 150 || vr < -150; // must be climbing or descending
+    })
+    .sort((a, b) => a.miles - b.miles) // closest first
+    .slice(0, 3); // top 3 only
+
+  if (!localFlights.length) {
+    // Count how many are cruising overhead so we can show a helpful message
+    const cruising = flights.filter(f => f.alt > 18000).length;
     return (
       <div className="ticker">
-        <div className="ticker-empty">NO AIRCRAFT IN RANGE · WAITING FOR DATA...</div>
+        <div className="ticker-hdr">
+          <span>LOCAL ARRIVALS / DEPARTURES</span>
+        </div>
+        <div className="ticker-empty">
+          {flights.length === 0
+            ? "SCANNING FOR LOCAL TRAFFIC..."
+            : `NO LOCAL ARRIVALS OR DEPARTURES RIGHT NOW · ${cruising} AIRCRAFT CRUISING OVERHEAD`}
+        </div>
       </div>
     );
   }
@@ -209,7 +237,7 @@ function TickerBoard({ flights, routeCache }) {
   return (
     <div className="ticker">
       <div className="ticker-hdr">
-        <span>FLIGHT</span>
+        <span>LOCAL ARRIVALS / DEPARTURES</span>
         <span style={{paddingLeft:12}}>ROUTE / AIRCRAFT</span>
         <span style={{textAlign:"right"}}>ALTITUDE</span>
         <span style={{textAlign:"right"}}>SPEED</span>
@@ -217,14 +245,13 @@ function TickerBoard({ flights, routeCache }) {
         <span style={{textAlign:"right"}}>STATUS</span>
       </div>
       <div className="ticker-rows">
-        {flights.slice(0, 8).map(f => {
+        {localFlights.map(f => {
           const vrFpm    = f.vrate ? Math.round(f.vrate) : 0;
-          const isUp     = vrFpm >  200;
-          const isDn     = vrFpm < -200;
-          const statusCls= isUp ? "tk-status tk-up" : isDn ? "tk-status tk-dn" : "tk-status tk-cruise";
-          const statusTxt= isUp ? "▲ CLIMBING" : isDn ? "▼ DESCENDING" : "→ CRUISING";
+          const isDep    = vrFpm >  150; // climbing = departing
+          const isArr    = vrFpm < -150; // descending = arriving
+          const statusCls= isDep ? "tk-status tk-up" : isArr ? "tk-status tk-dn" : "tk-status tk-cruise";
+          const statusTxt= isDep ? "▲ DEPARTING" : isArr ? "▼ ARRIVING" : "→ PATTERN";
 
-          // Pull route from cache
           const cached = f.callsign ? routeCache[f.callsign] : undefined;
           let routeDisp = "";
           if (cached === undefined && f.callsign) {
@@ -420,12 +447,21 @@ function Board({ location, onReset }) {
     finally { setLoading(false); setFetching(false); }
   }, [location]);
 
-  // Fetch routes for ticker board flights in background
+  // Fetch routes for local arrivals/departures in background
   useEffect(() => {
-    flights.slice(0, 8).forEach(f => {
+    const localFlights = flights
+      .filter(f => {
+        if (!f.alt || f.alt > 18000) return false;
+        const vr = f.vrate ? Math.round(f.vrate) : 0;
+        return vr > 150 || vr < -150;
+      })
+      .sort((a, b) => a.miles - b.miles)
+      .slice(0, 3);
+
+    localFlights.forEach(f => {
       if (!f.callsign) return;
-      if (routeCache[f.callsign] !== undefined) return; // already fetched
-      setRouteCache(c => ({ ...c, [f.callsign]: null })); // mark loading
+      if (routeCache[f.callsign] !== undefined) return;
+      setRouteCache(c => ({ ...c, [f.callsign]: null }));
       const params = new URLSearchParams({ callsign: f.callsign, icao: f.icao });
       fetch(`/api/route?${params}`)
         .then(r => r.json())
