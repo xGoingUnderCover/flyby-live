@@ -135,15 +135,15 @@ body{background:#080600;font-family:'Share Tech Mono',monospace;color:#ff9900;}
 .ticker{background:#0c0800;border-bottom:2px solid #1a0f00;overflow-x:auto;}
 .ticker-hdr{
   display:grid;
-  grid-template-columns:100px 130px 90px 160px 70px 80px 90px 100px 110px;
-  padding:5px 16px;min-width:940px;
+  grid-template-columns:150px 110px 140px 100px 60px 110px 110px 90px 80px 90px 70px 90px;
+  padding:5px 16px;min-width:1220px;
   font-size:8px;color:#332000;letter-spacing:3px;
   background:#080500;border-bottom:1px solid #150c00;
 }
 .ticker-row{
   display:grid;
-  grid-template-columns:100px 130px 90px 160px 70px 80px 90px 100px 110px;
-  padding:7px 16px;min-width:940px;
+  grid-template-columns:150px 110px 140px 100px 60px 110px 110px 90px 80px 90px 70px 90px;
+  padding:7px 16px;min-width:1220px;
   border-bottom:1px solid #110900;
   font-size:11px;letter-spacing:1px;align-items:center;
   position:relative;transition:background 0.15s;
@@ -151,9 +151,11 @@ body{background:#080600;font-family:'Share Tech Mono',monospace;color:#ff9900;}
 }
 @keyframes rowIn{from{opacity:0;transform:translateX(-8px);}to{opacity:1;transform:translateX(0);}}
 .ticker-row:hover{background:#120900;}
+.ticker-row.sel{background:#1c1000;border-left:3px solid #ffaa00;}
+.ticker-row{cursor:pointer;}
 .ticker-row:last-child{border-bottom:none;}
 .ticker-row::before{content:'';position:absolute;left:0;top:0;bottom:0;width:3px;background:var(--ac,#ff6600);box-shadow:0 0 5px var(--ac,#ff6600);}
-.ticker-empty{padding:10px 16px;font-size:10px;color:#221500;letter-spacing:3px;min-width:940px;}
+.ticker-empty{padding:10px 16px;font-size:10px;color:#221500;letter-spacing:3px;min-width:1220px;}
 .tk-cs{font-family:'Orbitron',monospace;font-weight:900;font-size:11px;color:#ffcc00;text-shadow:0 0 8px #ffaa0055;overflow:hidden;text-overflow:ellipsis;white-space:nowrap;}
 .tk-airline{color:#cc8844;overflow:hidden;text-overflow:ellipsis;white-space:nowrap;font-size:11px;}
 .tk-ac{color:#664400;font-size:10px;overflow:hidden;text-overflow:ellipsis;white-space:nowrap;}
@@ -174,7 +176,7 @@ body{background:#080600;font-family:'Share Tech Mono',monospace;color:#ff9900;}
 /* ── Middle section: radar map + flight list ── */
 .mid-section{
   display:grid;
-  grid-template-columns:280px 1fr;
+  grid-template-columns:50% 50%;
   border-bottom:2px solid #1a0f00;
   min-height:220px;
 }
@@ -215,8 +217,8 @@ body{background:#080600;font-family:'Share Tech Mono',monospace;color:#ff9900;}
 .leaflet-popup-close-button{color:#ff6600 !important;}
 
 /* ── Flight board ── */
-.bhdr{display:grid;grid-template-columns:1.6fr 2fr 1.4fr 1.1fr 1.2fr 0.9fr 1.3fr;padding:8px 20px;font-size:9px;color:#553300;letter-spacing:3px;border-bottom:1px solid #180e00;background:#0a0700;}
-.frow{display:grid;grid-template-columns:1.6fr 2fr 1.4fr 1.1fr 1.2fr 0.9fr 1.3fr;padding:9px 20px;border-bottom:1px solid #110900;cursor:pointer;transition:background 0.15s;position:relative;animation:rowIn 0.3s ease-out;}
+.bhdr{display:grid;grid-template-columns:110px 140px 110px 110px 90px 80px 90px 70px 90px;padding:8px 20px;font-size:9px;color:#553300;letter-spacing:3px;border-bottom:1px solid #180e00;background:#0a0700;min-width:900px;overflow-x:auto;}
+.frow{display:grid;grid-template-columns:110px 140px 110px 110px 90px 80px 90px 70px 90px;padding:9px 20px;border-bottom:1px solid #110900;cursor:pointer;transition:background 0.15s;position:relative;animation:rowIn 0.3s ease-out;min-width:900px;}
 .frow:hover{background:#160d00;}
 .frow.sel{background:#1c1000;border-left:3px solid #ffaa00;}
 .frow::before{content:'';position:absolute;left:0;top:0;bottom:0;width:3px;background:var(--ac,transparent);box-shadow:0 0 6px var(--ac,transparent);}
@@ -305,7 +307,7 @@ function AirportFilterBar({ airports, selected, onSelect }) {
 }
 
 // ─── Ticker board ─────────────────────────────────────────────────────────────
-function TickerBoard({ flights, routeCache, nearbyIata, nearbyAirports, filterAp }) {
+function TickerBoard({ flights, routeCache, nearbyIata, nearbyAirports, filterAp, selectedTicker, onTickerSelect }) {
   const hasNearby = nearbyIata && nearbyIata.size > 0;
 
   const localFlights = flights
@@ -328,22 +330,25 @@ function TickerBoard({ flights, routeCache, nearbyIata, nearbyAirports, filterAp
       return true;
     })
     .sort((a, b) => a.miles - b.miles)
-    .slice(0, 3);
+    .slice(0, 5);
 
   const apList = hasNearby ? Array.from(nearbyIata).join(" · ") : "";
 
   return (
     <div className="ticker">
       <div className="ticker-hdr">
+        <span>ROUTE</span>
         <span>CALLSIGN</span>
         <span>AIRLINE</span>
-        <span>AIRCRAFT</span>
-        <span>ROUTE</span>
+        <span style={{textAlign:"center"}}>STATUS</span>
         <span style={{textAlign:"center"}}>TIME</span>
+        <span>MAKER</span>
+        <span>AIRCRAFT</span>
+        <span style={{textAlign:"right",paddingRight:8}}>ALT (FT)</span>
         <span style={{textAlign:"right",paddingRight:8}}>SPEED</span>
         <span style={{textAlign:"center"}}>HEADING</span>
-        <span style={{textAlign:"right",paddingRight:8}}>ALTITUDE</span>
-        <span style={{textAlign:"center"}}>STATUS</span>
+        <span style={{textAlign:"right",paddingRight:8}}>DIST</span>
+        <span style={{textAlign:"center"}}>VERT RATE</span>
       </div>
 
       {localFlights.length === 0 ? (
@@ -369,18 +374,11 @@ function TickerBoard({ flights, routeCache, nearbyIata, nearbyAirports, filterAp
           const airline  = getAirline(f.callsign, route?.airline);
           const duration = estDuration(route);
           const accent   = accentFor(f.callsign);
+          const isSel   = selectedTicker === f.icao;
 
           return (
-            <div className="ticker-row" key={f.icao} style={{"--ac": accent}}>
-              {/* CALLSIGN */}
-              <div className="tk-cs">{f.callsign || f.icao.toUpperCase()}</div>
-
-              {/* AIRLINE */}
-              <div className="tk-airline">{cached === undefined && f.callsign ? "···" : airline}</div>
-
-              {/* AIRCRAFT */}
-              <div className="tk-ac">{acType}</div>
-
+            <div className={`ticker-row${isSel?" sel":""}`} key={f.icao} style={{"--ac": accent}}
+                 onClick={() => onTickerSelect(isSel ? null : f.icao)}>
               {/* ROUTE */}
               <div className="tk-route">
                 {route?.origin && route?.destination ? (
@@ -388,9 +386,6 @@ function TickerBoard({ flights, routeCache, nearbyIata, nearbyAirports, filterAp
                     <span className="tk-iata orig">{route.origin.iata}</span>
                     <span className="tk-arrow">→</span>
                     <span className="tk-iata dest">{route.destination.iata}</span>
-                    <span style={{fontSize:9,color:"#553300",marginLeft:3}}>
-                      {route.origin.city?.slice(0,8).toUpperCase()}→{route.destination.city?.slice(0,8).toUpperCase()}
-                    </span>
                   </>
                 ) : cached === undefined && f.callsign ? (
                   <span style={{color:"#332000"}}>···</span>
@@ -398,26 +393,36 @@ function TickerBoard({ flights, routeCache, nearbyIata, nearbyAirports, filterAp
                   <span style={{color:"#443300"}}>—</span>
                 )}
               </div>
-
-              {/* TRAVEL TIME */}
-              <div className="tk-num" style={{textAlign:"center",color:"#885500",fontSize:10}}>
-                {duration || "—"}
-              </div>
-
-              {/* SPEED */}
-              <div className="tk-num">{fmtSpd(f.speed)} <span style={{fontSize:9,color:"#664400"}}>KTS</span></div>
-
-              {/* HEADING */}
-              <div className="tk-hdg">{getHeading(f.track)} {f.track ? Math.round(f.track)+"°" : ""}</div>
-
-              {/* ALTITUDE */}
-              <div className="tk-alt">{feetAlt(f.alt)} <span style={{fontSize:9,color:"#664400"}}>FT</span></div>
-
+              {/* CALLSIGN */}
+              <div className="tk-cs">{f.callsign || f.icao.toUpperCase()}</div>
+              {/* AIRLINE */}
+              <div className="tk-airline">{cached === undefined && f.callsign ? "···" : airline}</div>
               {/* STATUS */}
               <div className={statusCls}>{statusTxt}</div>
+              {/* TIME */}
+              <div style={{textAlign:"center",color:"#885500",fontSize:10}}>{duration || "—"}</div>
+              {/* MAKER */}
+              <div className="tk-ac">{aircraft?.manufacturer?.toUpperCase().slice(0,10) || "—"}</div>
+              {/* AIRCRAFT */}
+              <div className="tk-ac">{acType}</div>
+              {/* ALT */}
+              <div className="tk-alt">{feetAlt(f.alt)}</div>
+              {/* SPEED */}
+              <div className="tk-num">{fmtSpd(f.speed)} <span style={{fontSize:9,color:"#664400"}}>KTS</span></div>
+              {/* HEADING */}
+              <div className="tk-hdg">{getHeading(f.track)} {f.track ? Math.round(f.track)+"°" : ""}</div>
+              {/* DIST */}
+              <div className="tk-num" style={{paddingRight:8}}>{f.miles.toFixed(1)} <span style={{fontSize:9,color:"#664400"}}>MI</span></div>
+              {/* VERT RATE */}
+              <div className={`tk-status ${vrFpm>50?"tk-dep":vrFpm<-50?"tk-arr":"tk-pat"}`}>
+                {vrFpm>50?`▲ ${vrFpm}`:vrFpm<-50?`▼ ${Math.abs(vrFpm)}`:"LEVEL"}
+              </div>
             </div>
           );
-        })
+        }).reduce((acc, el, i) => {
+          const f = localFlights[i];
+          return [...acc, el, selectedTicker === f?.icao ? <DetailPanel key={f.icao+"_dp"} flight={f}/> : null];
+        }, [])
       )}
     </div>
   );
@@ -713,6 +718,7 @@ function Board({ location, onReset }) {
   const [rpct,       setRpct]       = useState(0);
   const [routeCache, setRouteCache] = useState({});
   const [filterAp,   setFilterAp]   = useState(null);
+  const [selTicker,   setSelTicker]  = useState(null);
   const countRef = useRef(0);
   const DIST_NM  = 25;
   const INTERVAL = 30;
@@ -818,6 +824,8 @@ function Board({ location, onReset }) {
         nearbyIata={location.nearbyIata}
         nearbyAirports={location.nearbyAirports}
         filterAp={filterAp}
+        selectedTicker={selTicker}
+        onTickerSelect={setSelTicker}
       />
 
       {/* Radar map + stats side by side */}
@@ -850,9 +858,17 @@ function Board({ location, onReset }) {
       </div>
 
       {/* Full flight board */}
+      <div style={{overflowX:"auto"}}>
       <div className="bhdr">
-        <span>CALLSIGN</span><span>AIRLINE / TYPE</span><span>ALT (FT)</span>
-        <span>SPEED</span><span>HEADING</span><span>DIST</span><span>VERT RATE</span>
+        <span>CALLSIGN</span>
+        <span>AIRLINE</span>
+        <span>MAKER</span>
+        <span>AIRCRAFT</span>
+        <span style={{textAlign:"right",paddingRight:8}}>ALT (FT)</span>
+        <span style={{textAlign:"right",paddingRight:8}}>SPEED</span>
+        <span style={{textAlign:"center"}}>HEADING</span>
+        <span style={{textAlign:"right",paddingRight:8}}>DIST</span>
+        <span style={{textAlign:"center"}}>VERT RATE</span>
       </div>
 
       <div>
@@ -878,27 +894,42 @@ function Board({ location, onReset }) {
             <div key={f.icao}>
               <div className={`frow${isSel?" sel":""}`} style={{"--ac":ac}}
                    onClick={()=>setSelected(isSel?null:f.icao)}>
+                {/* CALLSIGN */}
                 <div className="cell">
                   <span className="pico" style={{transform:`rotate(${f.track||0}deg)`}}>✈</span>
                   <span className="cs">{f.callsign||f.icao}</span>
                 </div>
-                <div className="cell" style={{fontSize:11}}>
+                {/* AIRLINE */}
+                <div className="cell" style={{fontSize:11,overflow:"hidden",textOverflow:"ellipsis",whiteSpace:"nowrap"}}>
                   {getAirline(f.callsign,null)}
-                  {f.type&&<span className="dim" style={{fontSize:9}}> · {f.type}</span>}
                 </div>
-                <div className="cell" style={{flexDirection:"column",alignItems:"flex-start",gap:2}}>
+                {/* MAKER — from routeCache if available */}
+                <div className="cell dim" style={{fontSize:10,overflow:"hidden",textOverflow:"ellipsis",whiteSpace:"nowrap"}}>
+                  {routeCache[f.callsign]?.aircraft?.manufacturer?.toUpperCase().slice(0,10) || "—"}
+                </div>
+                {/* AIRCRAFT */}
+                <div className="cell dim" style={{fontSize:10,overflow:"hidden",textOverflow:"ellipsis",whiteSpace:"nowrap"}}>
+                  {routeCache[f.callsign]?.aircraft?.type?.toUpperCase() || f.type || "—"}
+                </div>
+                {/* ALT */}
+                <div className="cell" style={{flexDirection:"column",alignItems:"flex-end",gap:2,paddingRight:8}}>
                   <span className="bright">{feetAlt(f.alt)}</span>
                   <div className="abar"><div className="afill" style={{width:`${altPct}%`}}/></div>
                 </div>
-                <div className="cell bright">{spd}<span className="dim" style={{fontSize:9,marginLeft:2}}>KTS</span></div>
-                <div className="cell">{hdg}<span className="dim" style={{fontSize:9,marginLeft:2}}>{f.track?Math.round(f.track)+"°":""}</span></div>
-                <div className="cell dim">{f.miles.toFixed(1)}<span style={{fontSize:9,marginLeft:2}}>MI</span></div>
-                <div className={vrCls}>{vrLbl}<span style={{fontSize:9,marginLeft:2}}>FPM</span></div>
+                {/* SPEED */}
+                <div className="cell bright" style={{justifyContent:"flex-end",paddingRight:8}}>{spd}<span className="dim" style={{fontSize:9,marginLeft:2}}>KTS</span></div>
+                {/* HEADING */}
+                <div className="cell" style={{justifyContent:"center"}}>{hdg}<span className="dim" style={{fontSize:9,marginLeft:2}}>{f.track?Math.round(f.track)+"°":""}</span></div>
+                {/* DIST */}
+                <div className="cell dim" style={{justifyContent:"flex-end",paddingRight:8}}>{f.miles.toFixed(1)}<span style={{fontSize:9,marginLeft:2}}>MI</span></div>
+                {/* VERT RATE */}
+                <div className={`${vrCls}`} style={{justifyContent:"center"}}>{vrLbl}<span style={{fontSize:9,marginLeft:2}}>FPM</span></div>
               </div>
               {isSel && <DetailPanel flight={f}/>}
             </div>
           );
         })}
+      </div>
       </div>
 
       {lastUpdate && (
