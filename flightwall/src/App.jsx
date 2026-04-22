@@ -26,13 +26,40 @@ const haversine = (lat1,lon1,lat2,lon2) => {
   const a=Math.sin(dLat/2)**2+Math.cos(lat1*Math.PI/180)*Math.cos(lat2*Math.PI/180)*Math.sin(dLon/2)**2;
   return R*2*Math.atan2(Math.sqrt(a),Math.sqrt(1-a));
 };
+// Major airport coordinates for flight time estimation
+// adsbdb returns city/iata but not lat/lon, so we use this lookup
+const AP_COORDS = {
+  ATL:[33.6407,-84.4277],BOS:[42.3656,-71.0096],CLT:[35.2140,-80.9431],
+  DEN:[39.8561,-104.6737],DFW:[32.8998,-97.0403],DTW:[42.2124,-83.3534],
+  EWR:[40.6925,-74.1687],FLL:[26.0742,-80.1506],HNL:[21.3187,-157.9224],
+  IAD:[38.9531,-77.4565],IAH:[29.9902,-95.3368],JFK:[40.6413,-73.7781],
+  LAS:[36.0840,-115.1537],LAX:[33.9425,-118.4081],LGA:[40.7773,-73.8726],
+  MCO:[28.4312,-81.3081],MDW:[41.7868,-87.7522],MIA:[25.7959,-80.2870],
+  MSP:[44.8848,-93.2223],ORD:[41.9742,-87.9073],PHL:[39.8721,-75.2437],
+  PHX:[33.4373,-112.0078],PVD:[41.7251,-71.4284],SEA:[47.4502,-122.3088],
+  SFO:[37.6213,-122.3790],SLC:[40.7884,-111.9778],TEB:[40.8501,-74.0608],
+  BOS:[42.3656,-71.0096],BDL:[41.9389,-72.6832],MHT:[42.9326,-71.4357],
+  PBI:[26.6832,-80.0956],TPA:[27.9755,-82.5332],STL:[38.7487,-90.3700],
+  MSY:[29.9934,-90.2580],BNA:[36.1245,-86.6782],AUS:[30.1975,-97.6664],
+  CUN:[21.0365,-86.8771],MEX:[19.4363,-99.0721],LHR:[51.4775,-0.4614],
+  CDG:[49.0097,2.5479],FRA:[50.0379,8.5622],AMS:[52.3086,4.7639],
+  MAD:[40.4719,-3.5626],BCN:[41.2971,2.0785],FCO:[41.8003,12.2389],
+  YYZ:[43.6777,-79.6248],YUL:[45.4706,-73.7408],GRU:[-23.4356,-46.4731],
+  NRT:[35.7653,140.3856],ICN:[37.4602,126.4407],SYD:[-33.9399,151.1753],
+  DUB:[53.4213,-6.2701],MAN:[53.3537,-2.2750],ORF:[36.8976,-76.0183],
+};
+
 const estDuration = (route) => {
-  if (!route?.origin?.lat || !route?.destination?.lat) return null;
-  const d = haversine(route.origin.lat,route.origin.lon,route.destination.lat,route.destination.lon);
-  if (!d||d<10) return null;
-  const hrs = d/480;
-  if (hrs<1) return `~${Math.round(hrs*60)}m`;
-  return `~${Math.floor(hrs)}h${Math.round((hrs%1)*60).toString().padStart(2,"0")}m`;
+  if (!route?.origin?.iata || !route?.destination?.iata) return null;
+  const oc = AP_COORDS[route.origin.iata];
+  const dc = AP_COORDS[route.destination.iata];
+  if (!oc || !dc) return null;
+  const d = haversine(oc[0],oc[1],dc[0],dc[1]);
+  if (!d || d < 30) return null;
+  // Use 480mph cruise but add 20min for taxi/climb/descent
+  const hrs = d/480 + (20/60);
+  if (hrs < 1) return `~${Math.round(hrs*60)}MIN`;
+  return `~${Math.floor(hrs)}H${Math.round((hrs%1)*60).toString().padStart(2,"0")}M`;
 };
 const ACCENT = {
   UAL:"#1a44bb",DAL:"#cc0022",AAL:"#0066cc",SWA:"#dd8800",
@@ -151,14 +178,41 @@ body{background:#080600;font-family:'Share Tech Mono',monospace;color:#ff9900;}
   border-bottom:2px solid #1a0f00;
   min-height:220px;
 }
-.radar-panel{
+.map-panel{
   border-right:1px solid #1a0f00;
-  padding:12px 16px;
-  display:flex;flex-direction:column;gap:6px;
+  display:flex;flex-direction:column;
   background:#090700;
+  overflow:hidden;
 }
-.radar-title{font-size:8px;color:#443300;letter-spacing:3px;font-family:'Orbitron',monospace;}
-.radar-svg{width:100%;flex:1;}
+.map-title{
+  font-size:8px;color:#443300;letter-spacing:3px;
+  font-family:'Orbitron',monospace;
+  padding:8px 14px 6px;
+  background:#090700;
+  border-bottom:1px solid #1a0f00;
+  flex-shrink:0;
+}
+.map-container{
+  flex:1;
+  min-height:210px;
+  position:relative;
+}
+/* Override Leaflet styles to match dark theme */
+.leaflet-container{background:#0a0800 !important;}
+.leaflet-tile{filter:invert(1) hue-rotate(180deg) saturate(0.4) brightness(0.5);}
+.leaflet-control-attribution{display:none !important;}
+.leaflet-control-zoom a{
+  background:#0d0900 !important;border-color:#2a1800 !important;
+  color:#ff9900 !important;font-weight:bold;
+}
+.leaflet-control-zoom a:hover{background:#1a0f00 !important;}
+.leaflet-popup-content-wrapper{
+  background:#0d0900;border:1px solid #2a1800;color:#ff9900;
+  font-family:'Share Tech Mono',monospace;font-size:11px;
+  border-radius:0;box-shadow:0 0 12px #ff880033;
+}
+.leaflet-popup-tip{background:#0d0900;}
+.leaflet-popup-close-button{color:#ff6600 !important;}
 
 /* ── Flight board ── */
 .bhdr{display:grid;grid-template-columns:1.6fr 2fr 1.4fr 1.1fr 1.2fr 0.9fr 1.3fr;padding:8px 20px;font-size:9px;color:#553300;letter-spacing:3px;border-bottom:1px solid #180e00;background:#0a0700;}
@@ -219,7 +273,7 @@ body{background:#080600;font-family:'Share Tech Mono',monospace;color:#ff9900;}
   .bhdr,.frow{grid-template-columns:2fr 2fr 1.5fr 1.2fr;}
   .bhdr span:nth-child(n+5),.frow .cell:nth-child(n+5){display:none;}
   .mid-section{grid-template-columns:1fr;}
-  .radar-panel{border-right:none;border-bottom:1px solid #1a0f00;min-height:180px;}
+  .map-panel{border-right:none;border-bottom:1px solid #1a0f00;}.map-container{min-height:200px;}
   .stats-grid{grid-template-columns:1fr 1fr;}
 }
 `;
@@ -370,95 +424,161 @@ function TickerBoard({ flights, routeCache, nearbyIata, nearbyAirports, filterAp
 }
 
 // ─── Radar + Airport map ──────────────────────────────────────────────────────
-function RadarMap({ location, flights, nearbyAirports, selected, onSelect }) {
-  const DIST_NM = 25;
-  const W = 248, H = 200, CX = 124, CY = 100;
-  const scale = (H * 0.42) / DIST_NM; // pixels per NM
-  const nmPerDeg = 60;
+function LiveMap({ location, flights, nearbyAirports, selected, onSelect }) {
+  const mapRef     = useRef(null);
+  const leafletRef = useRef(null);
+  const markersRef = useRef([]);
+  const apMarkersRef = useRef([]);
 
-  const toXY = (lat, lon) => ({
-    x: CX + (lon - location.lon) * nmPerDeg * scale,
-    y: CY - (lat - location.lat) * nmPerDeg * scale,
-  });
+  // Load Leaflet CSS + JS from CDN once
+  useEffect(() => {
+    if (document.getElementById("leaflet-css")) return;
+    const link = document.createElement("link");
+    link.id   = "leaflet-css";
+    link.rel  = "stylesheet";
+    link.href = "https://cdnjs.cloudflare.com/ajax/libs/leaflet/1.9.4/leaflet.min.css";
+    document.head.appendChild(link);
+
+    const script = document.createElement("script");
+    script.id  = "leaflet-js";
+    script.src = "https://cdnjs.cloudflare.com/ajax/libs/leaflet/1.9.4/leaflet.min.js";
+    document.head.appendChild(script);
+  }, []);
+
+  // Init map once container is ready
+  useEffect(() => {
+    const init = () => {
+      if (!mapRef.current || leafletRef.current) return;
+      if (!window.L) { setTimeout(init, 200); return; }
+      const L = window.L;
+      const map = L.map(mapRef.current, {
+        center: [location.lat, location.lon],
+        zoom: 10,
+        zoomControl: true,
+        attributionControl: false,
+      });
+      L.tileLayer("https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png", {
+        maxZoom: 14,
+      }).addTo(map);
+
+      // Home pin — user zip location
+      const homeIcon = L.divIcon({
+        className: "",
+        html: `<div style="width:10px;height:10px;background:#ff9900;border:2px solid #ffcc00;border-radius:50%;box-shadow:0 0 10px #ff990088;"></div>`,
+        iconSize: [10,10], iconAnchor: [5,5],
+      });
+      L.marker([location.lat, location.lon], {icon: homeIcon})
+        .addTo(map)
+        .bindPopup(`<b>${location.city.toUpperCase()}, ${location.state}</b><br>ZIP ${location.zip}`);
+
+      leafletRef.current = map;
+    };
+    setTimeout(init, 300);
+    return () => {
+      if (leafletRef.current) {
+        leafletRef.current.remove();
+        leafletRef.current = null;
+      }
+    };
+  }, [location]);
+
+  // Airport markers — update when nearbyAirports changes
+  useEffect(() => {
+    const L = window.L;
+    const map = leafletRef.current;
+    if (!L || !map) return;
+
+    // Clear old airport markers
+    apMarkersRef.current.forEach(m => m.remove());
+    apMarkersRef.current = [];
+
+    (nearbyAirports || []).forEach(ap => {
+      const isLarge = ap.type === "large_airport";
+      const icon = L.divIcon({
+        className: "",
+        html: `<div style="
+          width:${isLarge?14:10}px;height:${isLarge?14:10}px;
+          background:${isLarge?"#ff880033":"#ff660011"};
+          border:${isLarge?"2px":"1px"} solid ${isLarge?"#ff8800":"#aa5500"};
+          transform:rotate(45deg);
+          box-shadow:${isLarge?"0 0 8px #ff880055":""};
+          cursor:pointer;
+        "></div>`,
+        iconSize: [isLarge?14:10, isLarge?14:10],
+        iconAnchor: [isLarge?7:5, isLarge?7:5],
+      });
+      const label = L.divIcon({
+        className:"",
+        html:`<div style="font-family:'Share Tech Mono',monospace;font-size:9px;color:${isLarge?"#ff8800":"#885500"};white-space:nowrap;margin-left:10px;margin-top:-4px;text-shadow:0 0 4px #000;">${ap.iata}</div>`,
+        iconSize:[40,14], iconAnchor:[0,7],
+      });
+      const m = L.marker([ap.lat, ap.lon], {icon})
+        .addTo(map)
+        .bindPopup(`<b>${ap.iata}</b> — ${ap.name}<br>${ap.city} · ${ap.dist} mi away`)
+        .on("click", () => onSelect && onSelect(ap.iata));
+      const l = L.marker([ap.lat, ap.lon], {icon: label, interactive: false}).addTo(map);
+      apMarkersRef.current.push(m, l);
+    });
+  }, [nearbyAirports, leafletRef.current]);
+
+  // Flight markers — update on every flights change
+  useEffect(() => {
+    const L = window.L;
+    const map = leafletRef.current;
+    if (!L || !map) return;
+
+    // Clear old flight markers
+    markersRef.current.forEach(m => m.remove());
+    markersRef.current = [];
+
+    flights.forEach(f => {
+      if (!f.lat || !f.lon) return;
+      const isLocal = f.alt && f.alt < 18000 && f.vrate && Math.abs(f.vrate) > 150;
+      const isDep   = f.vrate && f.vrate > 150;
+      const isArr   = f.vrate && f.vrate < -150;
+      const color   = selected === f.icao ? "#ffdd00"
+                    : isLocal && isDep     ? "#44ff88"
+                    : isLocal && isArr     ? "#ff5544"
+                    : "#ff9900";
+      const size    = isLocal ? 12 : 8;
+      const rotation = f.track || 0;
+
+      const icon = L.divIcon({
+        className: "",
+        html: `<div style="
+          font-size:${size}px;
+          color:${color};
+          transform:rotate(${rotation}deg);
+          text-shadow:0 0 6px ${color}88;
+          line-height:1;
+          cursor:pointer;
+        ">✈</div>`,
+        iconSize: [size, size],
+        iconAnchor: [size/2, size/2],
+      });
+
+      const popup = `
+        <b>${f.callsign || f.icao.toUpperCase()}</b><br>
+        ${feetAlt(f.alt)} FT · ${fmtSpd(f.speed)} KTS<br>
+        ${getHeading(f.track)} ${f.track ? Math.round(f.track)+"°" : ""}
+        ${isLocal ? `<br><span style="color:${color}">${isDep?"▲ DEPARTING":"▼ ARRIVING"}</span>` : ""}
+      `;
+
+      const m = L.marker([f.lat, f.lon], {icon})
+        .addTo(map)
+        .bindPopup(popup);
+      markersRef.current.push(m);
+    });
+  }, [flights, selected]);
 
   return (
-    <div className="radar-panel">
-      <div className="radar-title">RADAR · {DIST_NM}NM · LOCAL AIRPORTS</div>
-      <svg viewBox={`0 0 ${W} ${H}`} className="radar-svg">
-        {/* Range rings */}
-        {[0.33,0.66,1].map((r,i) => (
-          <circle key={i} cx={CX} cy={CY} r={H*0.42*r} fill="none" stroke="#180e00" strokeWidth="1"/>
-        ))}
-        {/* Cross hairs */}
-        <line x1={CX} y1={8} x2={CX} y2={H-8} stroke="#180e00" strokeWidth="1"/>
-        <line x1={8}  y1={CY} x2={W-8} y2={CY} stroke="#180e00" strokeWidth="1"/>
-        {/* Radar sweep */}
-        <line x1={CX} y1={CY} x2={CX} y2={8} stroke="#ff8800" strokeWidth="1.5" opacity="0.5">
-          <animateTransform attributeName="transform" type="rotate"
-            from={`0 ${CX} ${CY}`} to={`360 ${CX} ${CY}`} dur="4s" repeatCount="indefinite"/>
-        </line>
-        {/* Center pulse */}
-        <circle cx={CX} cy={CY} r="4" fill="#ff9900"/>
-        <circle cx={CX} cy={CY} r="4" fill="none" stroke="#ff9900" strokeWidth="1" opacity="0.4">
-          <animate attributeName="r" from="4" to="14" dur="2s" repeatCount="indefinite"/>
-          <animate attributeName="opacity" from="0.4" to="0" dur="2s" repeatCount="indefinite"/>
-        </circle>
-
-        {/* Airport markers */}
-        {(nearbyAirports || []).map(ap => {
-          const {x, y} = toXY(ap.lat, ap.lon);
-          if (x<4||x>W-4||y<4||y>H-4) return null;
-          const isLarge = ap.type === "large_airport";
-          return (
-            <g key={ap.iata} onClick={() => onSelect && onSelect(ap.iata)}
-               style={{cursor:"pointer"}}>
-              <rect x={x-5} y={y-5} width={10} height={10}
-                fill={isLarge?"#ff880033":"#ff660022"}
-                stroke={isLarge?"#ff8800":"#aa5500"}
-                strokeWidth={isLarge?1.5:1}
-                transform={`rotate(45 ${x} ${y})`}/>
-              <text x={x+7} y={y+4} fontSize="7" fill={isLarge?"#ff8800":"#885500"}
-                fontFamily="Share Tech Mono">{ap.iata}</text>
-            </g>
-          );
-        })}
-
-        {/* Flight blips */}
-        {flights.map(f => {
-          if (!f.lat || !f.lon) return null;
-          const {x, y} = toXY(f.lat, f.lon);
-          if (x<2||x>W-2||y<2||y>H-2) return null;
-          const isLocal = f.alt && f.alt < 18000 && f.vrate && Math.abs(f.vrate) > 150;
-          return (
-            <g key={f.icao} onClick={() => onSelect && onSelect(null)}
-               style={{cursor:"pointer"}}>
-              <circle cx={x} cy={y} r={isLocal ? 3 : 2}
-                fill={selected === f.icao ? "#ffdd00" : isLocal ? "#44ff88" : "#ff9900"}
-                style={{filter:`drop-shadow(0 0 ${isLocal?4:2}px ${isLocal?"#44ff88":"#ff9900"})`}}/>
-              {isLocal && (
-                <text x={x+4} y={y-3} fontSize="6" fill="#44ff8888" fontFamily="Share Tech Mono">
-                  {f.callsign?.slice(0,6)}
-                </text>
-              )}
-            </g>
-          );
-        })}
-
-        {/* Cardinal labels */}
-        <text x={CX+2} y={13}  fontSize="7" fill="#442200" fontFamily="Share Tech Mono">N</text>
-        <text x={CX+2} y={H-3} fontSize="7" fill="#442200" fontFamily="Share Tech Mono">S</text>
-        <text x={4}    y={CY+4} fontSize="7" fill="#442200" fontFamily="Share Tech Mono">W</text>
-        <text x={W-10} y={CY+4} fontSize="7" fill="#442200" fontFamily="Share Tech Mono">E</text>
-
-        {/* Legend */}
-        <rect x={6} y={H-22} width={6} height={6} fill="#ff880033" stroke="#ff8800" strokeWidth="1" transform="rotate(45 9 185)"/>
-        <text x={15} y={H-14} fontSize="6" fill="#664400" fontFamily="Share Tech Mono">AIRPORT</text>
-        <circle cx={9} cy={H-7} r="2.5" fill="#44ff88"/>
-        <text x={15} y={H-4} fontSize="6" fill="#664400" fontFamily="Share Tech Mono">LOCAL FLIGHT</text>
-      </svg>
+    <div className="map-panel">
+      <div className="map-title">LIVE MAP · {(nearbyAirports||[]).length} AIRPORTS · {flights.length} AIRCRAFT</div>
+      <div className="map-container" ref={mapRef}/>
     </div>
   );
 }
+
 
 // ─── Detail panel ─────────────────────────────────────────────────────────────
 function DetailPanel({ flight }) {
@@ -702,7 +822,7 @@ function Board({ location, onReset }) {
 
       {/* Radar map + stats side by side */}
       <div className="mid-section">
-        <RadarMap
+        <LiveMap
           location={location}
           flights={flights}
           nearbyAirports={location.nearbyAirports}
@@ -785,7 +905,9 @@ function Board({ location, onReset }) {
         <div className="foot">
           LAST UPDATE {lastUpdate.toLocaleTimeString()} · AUTO-REFRESH {INTERVAL}S ·
           DATA: <a href="https://adsb.lol" target="_blank" rel="noopener noreferrer">ADSB.LOL</a> ·
-          ROUTES: <a href="https://adsbdb.com" target="_blank" rel="noopener noreferrer">ADSBDB.COM</a>
+          ROUTES: <a href="https://adsbdb.com" target="_blank" rel="noopener noreferrer">ADSBDB.COM</a> ·
+          ROUTE DATA © DAVID TAYLOR & JIM MASON (USED VIA API, NOT COPIED) ·
+          MAP: <a href="https://www.openstreetmap.org/copyright" target="_blank" rel="noopener noreferrer">OPENSTREETMAP</a>
         </div>
       )}
     </div>
