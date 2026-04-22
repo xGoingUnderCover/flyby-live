@@ -1,7 +1,5 @@
 import { useState, useEffect, useCallback, useRef } from "react";
 
-// ─── Helpers ────────────────────────────────────────────────────────────────
-
 const AIRLINE_MAP = {
   UAL:"UNITED",DAL:"DELTA",AAL:"AMERICAN",SWA:"SOUTHWEST",JBU:"JETBLUE",
   NKS:"SPIRIT",FFT:"FRONTIER",ASA:"ALASKA",FDX:"FEDEX",UPS:"UPS AIR",
@@ -9,10 +7,10 @@ const AIRLINE_MAP = {
   AFR:"AIR FRANCE",KLM:"KLM",IBE:"IBERIA",UAE:"EMIRATES",QTR:"QATAR",
   THY:"TURKISH",VIR:"VIRGIN ATL",EIN:"AER LINGUS",CLX:"CARGOLUX",
   ENY:"ENVOY",SKW:"SKYWEST",RPA:"REPUBLIC",CPZ:"COLGAN",
-  PDT:"PEDMONT",MQ:"ENVOY",OH:"PSA",YV:"MESA",
 };
 
-const getAirline = (flight) => {
+const getAirline = (flight, routeAirline) => {
+  if (routeAirline) return routeAirline.toUpperCase();
   if (!flight) return "UNKNOWN";
   const code = flight.slice(0,3).toUpperCase();
   return AIRLINE_MAP[code] || flight.trim().toUpperCase().slice(0,10);
@@ -39,291 +37,215 @@ const ACCENT = {
   JBU:"#0055aa",FDX:"#8800cc",UPS:"#5c3317",NKS:"#ccbb00"
 };
 
-// ─── Styles ─────────────────────────────────────────────────────────────────
+// ─── Styles ──────────────────────────────────────────────────────────────────
 
 const CSS = `
 @import url('https://fonts.googleapis.com/css2?family=Share+Tech+Mono&family=Orbitron:wght@400;700;900&display=swap');
-*, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+*,*::before,*::after{box-sizing:border-box;margin:0;padding:0;}
+body{background:#080600;font-family:'Share Tech Mono',monospace;color:#ff9900;}
 
-body {
-  background: #080600;
-  font-family: 'Share Tech Mono', monospace;
-  color: #ff9900;
+.scanlines{position:fixed;inset:0;pointer-events:none;z-index:300;background:repeating-linear-gradient(0deg,transparent,transparent 2px,rgba(0,0,0,0.07) 2px,rgba(0,0,0,0.07) 4px);}
+.vignette{position:fixed;inset:0;pointer-events:none;z-index:299;background:radial-gradient(ellipse at center,transparent 45%,rgba(0,0,0,0.55) 100%);}
+
+/* ── Landing ── */
+.landing{min-height:100vh;display:flex;flex-direction:column;align-items:center;justify-content:center;padding:40px 24px;text-align:center;gap:0;}
+.brand{font-family:'Orbitron',monospace;font-weight:900;font-size:clamp(36px,8vw,80px);color:#ffb300;text-shadow:0 0 30px #ff9900,0 0 60px #ff6600;letter-spacing:6px;line-height:1;animation:glow 3s ease-in-out infinite;}
+@keyframes glow{0%,100%{text-shadow:0 0 30px #ff9900,0 0 60px #ff6600;}50%{text-shadow:0 0 40px #ffcc00,0 0 80px #ff8800;}}
+.brand-plane{font-size:clamp(28px,5vw,56px);margin-right:12px;display:inline-block;animation:flyIn 1.2s ease-out;}
+@keyframes flyIn{from{transform:translateX(-80px);opacity:0;}to{transform:translateX(0);opacity:1;}}
+.tagline{font-size:clamp(12px,2vw,16px);color:#aa6600;letter-spacing:4px;margin-top:12px;margin-bottom:48px;}
+.zip-form{display:flex;gap:0;align-items:stretch;width:100%;max-width:380px;}
+.zip-input{flex:1;background:#0f0900;border:2px solid #3a2200;border-right:none;color:#ffcc00;font-family:'Orbitron',monospace;font-size:22px;font-weight:700;letter-spacing:6px;padding:14px 16px;outline:none;text-align:center;transition:border-color 0.2s;}
+.zip-input::placeholder{color:#3a2200;letter-spacing:4px;}
+.zip-input:focus{border-color:#ff9900;}
+.zip-btn{background:#ff8800;border:2px solid #ff8800;color:#000;font-family:'Orbitron',monospace;font-size:13px;font-weight:900;letter-spacing:2px;padding:14px 20px;cursor:pointer;transition:background 0.15s;white-space:nowrap;}
+.zip-btn:hover{background:#ffaa00;border-color:#ffaa00;}
+.zip-btn:disabled{opacity:0.5;cursor:not-allowed;}
+.zip-error{margin-top:12px;font-size:12px;color:#ff4400;letter-spacing:2px;}
+.features{display:flex;gap:32px;margin-top:64px;flex-wrap:wrap;justify-content:center;}
+.feat{font-size:11px;color:#553300;letter-spacing:2px;text-align:center;}
+.feat-icon{font-size:22px;display:block;margin-bottom:6px;}
+
+/* ── Header ── */
+.wall{min-height:100vh;background:#080600;}
+.hdr{padding:12px 24px 10px;border-bottom:2px solid #2a1800;display:flex;align-items:center;justify-content:space-between;gap:12px;flex-wrap:wrap;}
+.hdr-left{display:flex;align-items:center;gap:16px;flex-wrap:wrap;}
+.logo{font-family:'Orbitron',monospace;font-weight:900;font-size:18px;color:#ffb300;text-shadow:0 0 16px #ff9900,0 0 32px #ff6600;letter-spacing:3px;cursor:pointer;white-space:nowrap;}
+.logo:hover{color:#ffcc44;}
+.location-badge{font-size:10px;color:#884400;letter-spacing:2px;white-space:nowrap;}
+.change-zip{background:none;border:1px solid #2a1800;color:#664400;font-family:'Share Tech Mono',monospace;font-size:10px;letter-spacing:2px;padding:3px 10px;cursor:pointer;transition:all 0.15s;}
+.change-zip:hover{border-color:#ff9900;color:#ff9900;}
+.hdr-right{display:flex;align-items:center;gap:10px;flex-wrap:wrap;justify-content:flex-end;}
+.clock{font-family:'Orbitron',monospace;font-size:18px;color:#ffcc00;text-shadow:0 0 10px #ffaa00;letter-spacing:2px;}
+.sdot{width:8px;height:8px;border-radius:50%;flex-shrink:0;}
+.sdot.live{background:#00ff44;box-shadow:0 0 8px #00ff44;animation:blink 1.5s ease-in-out infinite;}
+.sdot.err{background:#ff3300;box-shadow:0 0 8px #ff3300;}
+.sdot.fetching{background:#ffaa00;box-shadow:0 0 8px #ffaa00;animation:blink 0.5s ease-in-out infinite;}
+@keyframes blink{0%,100%{opacity:1;}50%{opacity:0.2;}}
+.stxt{font-size:10px;color:#cc8800;letter-spacing:2px;}
+.cbadge{font-family:'Orbitron',monospace;font-size:10px;color:#ff9900;background:#120c00;border:1px solid #2a1800;padding:2px 8px;white-space:nowrap;}
+.rbar{height:2px;background:#120c00;}
+.rfill{height:100%;background:linear-gradient(90deg,#ff6600,#ffcc00);box-shadow:0 0 8px #ff9900;transition:width 1s linear;}
+.ticker{background:#0d0900;border-bottom:1px solid #1a0f00;padding:5px 0;overflow:hidden;white-space:nowrap;}
+.tinner{display:inline-block;animation:tick 60s linear infinite;font-size:11px;color:#aa5500;letter-spacing:2px;}
+@keyframes tick{0%{transform:translateX(100vw);}100%{transform:translateX(-100%);}}
+
+/* ── Board ── */
+.bhdr{display:grid;grid-template-columns:1.6fr 2fr 1.4fr 1.1fr 1.2fr 0.9fr 1.3fr;padding:9px 24px;font-size:9px;color:#553300;letter-spacing:3px;border-bottom:1px solid #180e00;background:#0a0700;}
+.frow{display:grid;grid-template-columns:1.6fr 2fr 1.4fr 1.1fr 1.2fr 0.9fr 1.3fr;padding:10px 24px;border-bottom:1px solid #110900;cursor:pointer;transition:background 0.15s;position:relative;animation:rowIn 0.3s ease-out;}
+@keyframes rowIn{from{opacity:0;transform:translateX(-6px);}to{opacity:1;transform:translateX(0);}}
+.frow:hover{background:#160d00;}
+.frow.sel{background:#1c1000;border-left:3px solid #ffaa00;}
+.frow::before{content:'';position:absolute;left:0;top:0;bottom:0;width:3px;background:var(--ac,transparent);box-shadow:0 0 6px var(--ac,transparent);}
+.cell{font-size:13px;color:#ffaa33;display:flex;align-items:center;gap:5px;overflow:hidden;}
+.cell.dim{color:#774400;font-size:11px;}
+.cell.bright{color:#ffdd55;text-shadow:0 0 12px #ffaa00;}
+.cell.grn{color:#44ff88;}
+.cell.red{color:#ff5544;}
+.cs{font-family:'Orbitron',monospace;font-size:11px;font-weight:700;color:#ffcc00;text-shadow:0 0 10px #ffaa00;letter-spacing:1px;}
+.pico{font-size:15px;display:inline-block;transition:transform 0.5s;}
+.abar{width:38px;height:3px;background:#160d00;border-radius:2px;overflow:hidden;margin-top:3px;}
+.afill{height:100%;border-radius:2px;background:linear-gradient(90deg,#ff6600,#ffcc00);}
+
+/* ── Detail panel ── */
+.dpanel{background:#0a0700;border-bottom:2px solid #2a1800;animation:fadeIn 0.2s ease-out;overflow:hidden;}
+@keyframes fadeIn{from{opacity:0;}to{opacity:1;}}
+
+/* Route banner - the big FROM → TO display */
+.route-banner{
+  padding:16px 24px 12px;
+  display:flex;
+  align-items:center;
+  gap:0;
+  border-bottom:1px solid #1a0f00;
+  flex-wrap:wrap;
+}
+.route-airport{
+  display:flex;
+  flex-direction:column;
+  min-width:140px;
+}
+.route-iata{
+  font-family:'Orbitron',monospace;
+  font-size:36px;
+  font-weight:900;
+  line-height:1;
+  text-shadow:0 0 20px currentColor;
+}
+.route-iata.origin{ color:#44aaff; text-shadow:0 0 20px #44aaff66; }
+.route-iata.dest  { color:#ff6644; text-shadow:0 0 20px #ff664466; }
+.route-city{
+  font-size:11px;
+  margin-top:4px;
+  letter-spacing:2px;
+  white-space:nowrap;
+  overflow:hidden;
+  text-overflow:ellipsis;
+  max-width:200px;
+}
+.route-city.origin{ color:#3388cc; }
+.route-city.dest  { color:#cc5533; }
+.route-airport-name{
+  font-size:9px;
+  color:#443300;
+  letter-spacing:1px;
+  margin-top:2px;
+  max-width:200px;
+  white-space:nowrap;
+  overflow:hidden;
+  text-overflow:ellipsis;
 }
 
-/* ── Scanline & vignette overlays ── */
-.scanlines {
-  position: fixed; inset: 0; pointer-events: none; z-index: 300;
-  background: repeating-linear-gradient(0deg, transparent, transparent 2px, rgba(0,0,0,0.07) 2px, rgba(0,0,0,0.07) 4px);
-}
-.vignette {
-  position: fixed; inset: 0; pointer-events: none; z-index: 299;
-  background: radial-gradient(ellipse at center, transparent 45%, rgba(0,0,0,0.55) 100%);
+.route-arrow{
+  font-size:28px;
+  color:#664400;
+  padding:0 20px;
+  flex-shrink:0;
+  align-self:center;
 }
 
-/* ── Landing / zip entry ── */
-.landing {
-  min-height: 100vh;
-  display: flex;
-  flex-direction: column;
-  align-items: center;
-  justify-content: center;
-  padding: 40px 24px;
-  text-align: center;
-  gap: 0;
+.route-loading{
+  padding:16px 24px;
+  font-size:11px;
+  color:#664400;
+  letter-spacing:3px;
+  border-bottom:1px solid #1a0f00;
+}
+.route-none{
+  padding:12px 24px;
+  font-size:10px;
+  color:#443300;
+  letter-spacing:2px;
+  border-bottom:1px solid #1a0f00;
 }
 
-.brand {
-  font-family: 'Orbitron', monospace;
-  font-weight: 900;
-  font-size: clamp(36px, 8vw, 80px);
-  color: #ffb300;
-  text-shadow: 0 0 30px #ff9900, 0 0 60px #ff6600, 0 0 100px #ff440055;
-  letter-spacing: 6px;
-  line-height: 1;
-  animation: glow 3s ease-in-out infinite;
+/* Aircraft type strip */
+.ac-strip{
+  padding:10px 24px;
+  display:flex;
+  align-items:center;
+  gap:24px;
+  flex-wrap:wrap;
+  border-bottom:1px solid #1a0f00;
+}
+.ac-field{ display:flex; flex-direction:column; gap:3px; }
+.ac-label{ font-size:8px; color:#553300; letter-spacing:3px; }
+.ac-value{ font-family:'Orbitron',monospace; font-size:13px; color:#ffcc44; text-shadow:0 0 8px #ff990044; }
+.ac-photo{
+  width:100px;
+  height:60px;
+  object-fit:cover;
+  border:1px solid #2a1800;
+  flex-shrink:0;
 }
 
-@keyframes glow {
-  0%, 100% { text-shadow: 0 0 30px #ff9900, 0 0 60px #ff6600; }
-  50%       { text-shadow: 0 0 40px #ffcc00, 0 0 80px #ff8800, 0 0 120px #ff440066; }
+/* Stats grid */
+.stats-grid{
+  display:grid;
+  grid-template-columns:repeat(4,1fr);
+  gap:0;
+  border-top:1px solid #1a0f00;
 }
-
-.brand-plane {
-  font-size: clamp(28px, 5vw, 56px);
-  margin-right: 12px;
-  display: inline-block;
-  animation: flyIn 1.2s ease-out;
+.stat-cell{
+  padding:10px 16px;
+  border-right:1px solid #1a0f00;
 }
-@keyframes flyIn {
-  from { transform: translateX(-80px); opacity: 0; }
-  to   { transform: translateX(0);     opacity: 1; }
-}
+.stat-cell:last-child{ border-right:none; }
+.stat-label{ font-size:8px; color:#553300; letter-spacing:3px; }
+.stat-val{ font-family:'Orbitron',monospace; font-size:14px; color:#ffcc44; text-shadow:0 0 8px #ff9900; margin-top:3px; }
 
-.tagline {
-  font-size: clamp(12px, 2vw, 16px);
-  color: #aa6600;
-  letter-spacing: 4px;
-  margin-top: 12px;
-  margin-bottom: 48px;
-}
+/* ── Bottom ── */
+.bot{padding:16px 24px;display:flex;gap:24px;align-items:flex-start;border-top:2px solid #180e00;flex-wrap:wrap;}
+.rlabel{font-size:9px;color:#553300;letter-spacing:2px;margin-bottom:6px;font-family:'Orbitron',monospace;}
+.radar{width:200px;height:200px;flex-shrink:0;}
+.sgrid{display:grid;grid-template-columns:1fr 1fr;gap:10px;flex:1;min-width:240px;}
+.scard{background:#0d0900;border:1px solid #2a1800;padding:10px 14px;}
+.snum{font-family:'Orbitron',monospace;font-size:26px;font-weight:900;color:#ffcc00;text-shadow:0 0 20px #ff9900;line-height:1;}
+.slbl{font-size:8px;color:#553300;letter-spacing:3px;margin-top:3px;}
 
-.zip-form {
-  display: flex;
-  gap: 0;
-  align-items: stretch;
-  width: 100%;
-  max-width: 380px;
-}
-
-.zip-input {
-  flex: 1;
-  background: #0f0900;
-  border: 2px solid #3a2200;
-  border-right: none;
-  color: #ffcc00;
-  font-family: 'Orbitron', monospace;
-  font-size: 22px;
-  font-weight: 700;
-  letter-spacing: 6px;
-  padding: 14px 16px;
-  outline: none;
-  text-align: center;
-  transition: border-color 0.2s;
-}
-.zip-input::placeholder { color: #3a2200; letter-spacing: 4px; }
-.zip-input:focus { border-color: #ff9900; }
-
-.zip-btn {
-  background: #ff8800;
-  border: 2px solid #ff8800;
-  color: #000;
-  font-family: 'Orbitron', monospace;
-  font-size: 13px;
-  font-weight: 900;
-  letter-spacing: 2px;
-  padding: 14px 20px;
-  cursor: pointer;
-  transition: background 0.15s;
-  white-space: nowrap;
-}
-.zip-btn:hover  { background: #ffaa00; border-color: #ffaa00; }
-.zip-btn:active { background: #dd6600; }
-.zip-btn:disabled { opacity: 0.5; cursor: not-allowed; }
-
-.zip-error {
-  margin-top: 12px;
-  font-size: 12px;
-  color: #ff4400;
-  letter-spacing: 2px;
-}
-
-.features {
-  display: flex;
-  gap: 32px;
-  margin-top: 64px;
-  flex-wrap: wrap;
-  justify-content: center;
-}
-.feat {
-  font-size: 11px;
-  color: #553300;
-  letter-spacing: 2px;
-  text-align: center;
-}
-.feat-icon { font-size: 22px; display: block; margin-bottom: 6px; }
-
-/* ── Main board ── */
-.wall { min-height: 100vh; background: #080600; }
-
-.hdr {
-  padding: 12px 24px 10px;
-  border-bottom: 2px solid #2a1800;
-  display: flex;
-  align-items: center;
-  justify-content: space-between;
-  gap: 12px;
-  flex-wrap: wrap;
-}
-
-.hdr-left { display: flex; align-items: center; gap: 16px; flex-wrap: wrap; }
-
-.logo {
-  font-family: 'Orbitron', monospace;
-  font-weight: 900;
-  font-size: 18px;
-  color: #ffb300;
-  text-shadow: 0 0 16px #ff9900, 0 0 32px #ff6600;
-  letter-spacing: 3px;
-  cursor: pointer;
-  white-space: nowrap;
-}
-.logo:hover { color: #ffcc44; }
-
-.location-badge {
-  font-size: 10px;
-  color: #884400;
-  letter-spacing: 2px;
-  white-space: nowrap;
-}
-
-.change-zip {
-  background: none;
-  border: 1px solid #2a1800;
-  color: #664400;
-  font-family: 'Share Tech Mono', monospace;
-  font-size: 10px;
-  letter-spacing: 2px;
-  padding: 3px 10px;
-  cursor: pointer;
-  transition: all 0.15s;
-}
-.change-zip:hover { border-color: #ff9900; color: #ff9900; }
-
-.hdr-right { display: flex; align-items: center; gap: 10px; flex-wrap: wrap; justify-content: flex-end; }
-
-.clock {
-  font-family: 'Orbitron', monospace;
-  font-size: 18px;
-  color: #ffcc00;
-  text-shadow: 0 0 10px #ffaa00;
-  letter-spacing: 2px;
-}
-
-.sdot { width: 8px; height: 8px; border-radius: 50%; flex-shrink: 0; }
-.sdot.live     { background: #00ff44; box-shadow: 0 0 8px #00ff44; animation: blink 1.5s ease-in-out infinite; }
-.sdot.err      { background: #ff3300; box-shadow: 0 0 8px #ff3300; }
-.sdot.fetching { background: #ffaa00; box-shadow: 0 0 8px #ffaa00; animation: blink 0.5s ease-in-out infinite; }
-@keyframes blink { 0%,100%{opacity:1;} 50%{opacity:0.2;} }
-
-.stxt  { font-size: 10px; color: #cc8800; letter-spacing: 2px; }
-.cbadge {
-  font-family: 'Orbitron', monospace; font-size: 10px; color: #ff9900;
-  background: #120c00; border: 1px solid #2a1800; padding: 2px 8px; white-space: nowrap;
-}
-
-.rbar  { height: 2px; background: #120c00; }
-.rfill { height: 100%; background: linear-gradient(90deg,#ff6600,#ffcc00); box-shadow: 0 0 8px #ff9900; transition: width 1s linear; }
-
-.ticker { background: #0d0900; border-bottom: 1px solid #1a0f00; padding: 5px 0; overflow: hidden; white-space: nowrap; }
-.tinner { display: inline-block; animation: tick 60s linear infinite; font-size: 11px; color: #aa5500; letter-spacing: 2px; }
-@keyframes tick { 0%{transform:translateX(100vw);} 100%{transform:translateX(-100%);} }
-
-.bhdr {
-  display: grid;
-  grid-template-columns: 1.8fr 2.2fr 1.4fr 1.1fr 1.2fr 0.9fr 1.3fr;
-  padding: 9px 24px; font-size: 9px; color: #553300; letter-spacing: 3px;
-  border-bottom: 1px solid #180e00; background: #0a0700;
-}
-
-.frow {
-  display: grid;
-  grid-template-columns: 1.8fr 2.2fr 1.4fr 1.1fr 1.2fr 0.9fr 1.3fr;
-  padding: 10px 24px; border-bottom: 1px solid #110900;
-  cursor: pointer; transition: background 0.15s; position: relative;
-  animation: rowIn 0.3s ease-out;
-}
-@keyframes rowIn { from{opacity:0;transform:translateX(-6px);} to{opacity:1;transform:translateX(0);} }
-.frow:hover { background: #160d00; }
-.frow.sel   { background: #1c1000; border-left: 3px solid #ffaa00; }
-.frow::before {
-  content: ''; position: absolute; left: 0; top: 0; bottom: 0; width: 3px;
-  background: var(--ac,transparent); box-shadow: 0 0 6px var(--ac,transparent);
-}
-
-.cell       { font-size: 13px; color: #ffaa33; display: flex; align-items: center; gap: 5px; overflow: hidden; }
-.cell.dim   { color: #774400; font-size: 11px; }
-.cell.bright{ color: #ffdd55; text-shadow: 0 0 12px #ffaa00; }
-.cell.grn   { color: #44ff88; }
-.cell.red   { color: #ff5544; }
-
-.cs { font-family:'Orbitron',monospace; font-size:11px; font-weight:700; color:#ffcc00; text-shadow:0 0 10px #ffaa00; letter-spacing:1px; }
-.pico { font-size:15px; display:inline-block; transition:transform 0.5s; }
-.abar { width:38px; height:3px; background:#160d00; border-radius:2px; overflow:hidden; margin-top:3px; }
-.afill{ height:100%; border-radius:2px; background:linear-gradient(90deg,#ff6600,#ffcc00); }
-
-.dpanel {
-  padding: 14px 24px; background: #0e0800; border-top: 1px solid #1a0f00;
-  border-bottom: 2px solid #2a1800;
-  display: grid; grid-template-columns: repeat(4,1fr); gap: 14px;
-  animation: fadeIn 0.2s ease-out;
-}
-@keyframes fadeIn { from{opacity:0;} to{opacity:1;} }
-.dlabel { font-size:8px; color:#553300; letter-spacing:3px; }
-.dval   { font-family:'Orbitron',monospace; font-size:13px; color:#ffcc44; text-shadow:0 0 10px #ff9900; margin-top:3px; }
-
-.bot { padding:16px 24px; display:flex; gap:24px; align-items:flex-start; border-top:2px solid #180e00; flex-wrap:wrap; }
-.rlabel { font-size:9px; color:#553300; letter-spacing:2px; margin-bottom:6px; font-family:'Orbitron',monospace; }
-.radar  { width:200px; height:200px; flex-shrink:0; }
-.sgrid  { display:grid; grid-template-columns:1fr 1fr; gap:10px; flex:1; min-width:240px; }
-.scard  { background:#0d0900; border:1px solid #2a1800; padding:10px 14px; }
-.snum   { font-family:'Orbitron',monospace; font-size:26px; font-weight:900; color:#ffcc00; text-shadow:0 0 20px #ff9900; line-height:1; }
-.slbl   { font-size:8px; color:#553300; letter-spacing:3px; margin-top:3px; }
-
-.empty  { padding:50px 24px; text-align:center; color:#332200; font-size:13px; letter-spacing:3px; }
-.ldots span { animation:ld 1.2s ease-in-out infinite; color:#ff9900; }
+.empty{padding:50px 24px;text-align:center;color:#332200;font-size:13px;letter-spacing:3px;}
+.ldots span{animation:ld 1.2s ease-in-out infinite;color:#ff9900;}
 .ldots span:nth-child(2){animation-delay:0.2s;}
 .ldots span:nth-child(3){animation-delay:0.4s;}
-@keyframes ld { 0%,80%,100%{opacity:0.2;} 40%{opacity:1;} }
+@keyframes ld{0%,80%,100%{opacity:0.2;}40%{opacity:1;}}
+.errbanner{padding:6px 24px;font-size:10px;color:#ff6600;background:#100500;letter-spacing:1px;border-bottom:1px solid #300000;}
+.foot{padding:8px 24px;font-size:9px;color:#332200;letter-spacing:2px;}
+.foot a{color:#553300;text-decoration:none;}
+.foot a:hover{color:#ff9900;}
 
-.errbanner { padding:6px 24px; font-size:10px; color:#ff6600; background:#100500; letter-spacing:1px; border-bottom:1px solid #300000; }
-.foot      { padding:8px 24px; font-size:9px; color:#332200; letter-spacing:2px; }
-.foot a    { color:#553300; text-decoration:none; }
-.foot a:hover { color:#ff9900; }
-
-::-webkit-scrollbar       { width:3px; }
-::-webkit-scrollbar-track { background:#080600; }
-::-webkit-scrollbar-thumb { background:#2a1800; }
+::-webkit-scrollbar{width:3px;}
+::-webkit-scrollbar-track{background:#080600;}
+::-webkit-scrollbar-thumb{background:#2a1800;}
 
 @media(max-width:640px){
-  .bhdr,.frow{ grid-template-columns:2fr 2fr 1.5fr 1.2fr; }
-  .bhdr span:nth-child(5),.bhdr span:nth-child(6),.bhdr span:nth-child(7),
-  .frow .cell:nth-child(5),.frow .cell:nth-child(6),.frow .cell:nth-child(7){ display:none; }
-  .dpanel{ grid-template-columns:1fr 1fr; }
+  .bhdr,.frow{grid-template-columns:2fr 2fr 1.5fr 1.2fr;}
+  .bhdr span:nth-child(n+5),.frow .cell:nth-child(n+5){display:none;}
+  .stats-grid{grid-template-columns:1fr 1fr;}
+  .stat-cell:nth-child(3){border-top:1px solid #1a0f00;}
 }
 `;
 
-// ─── Landing screen ──────────────────────────────────────────────────────────
+// ─── Landing ─────────────────────────────────────────────────────────────────
 
 function Landing({ onSubmit }) {
   const [zip, setZip]   = useState("");
@@ -340,50 +262,181 @@ function Landing({ onSubmit }) {
       const data = await res.json();
       if (!res.ok) throw new Error(data.error || "Invalid zip code");
       onSubmit({ zip: z, ...data });
-    } catch(e) {
-      setErr(e.message);
-    }
+    } catch(e) { setErr(e.message); }
     setBusy(false);
   };
 
   return (
     <div className="landing">
       <div>
-        <div className="brand">
-          <span className="brand-plane">✈</span>
-          FLYBY<span style={{color:"#ff6600"}}>.LIVE</span>
-        </div>
+        <div className="brand"><span className="brand-plane">✈</span>FLYBY<span style={{color:"#ff6600"}}>.LIVE</span></div>
         <div className="tagline">LIVE FLIGHTS OVERHEAD · ENTER YOUR ZIP CODE</div>
       </div>
-
       <form className="zip-form" onSubmit={handleSubmit}>
-        <input
-          className="zip-input"
-          type="text"
-          inputMode="numeric"
-          maxLength={5}
-          placeholder="07073"
-          value={zip}
-          onChange={e => { setZip(e.target.value.replace(/\D/,"")); setErr(""); }}
-          autoFocus
-        />
-        <button className="zip-btn" type="submit" disabled={busy}>
-          {busy ? "..." : "TRACK ▶"}
-        </button>
+        <input className="zip-input" type="text" inputMode="numeric" maxLength={5}
+          placeholder="07073" value={zip}
+          onChange={e=>{setZip(e.target.value.replace(/\D/,""));setErr("");}} autoFocus/>
+        <button className="zip-btn" type="submit" disabled={busy}>{busy?"...":"TRACK ▶"}</button>
       </form>
       {err && <div className="zip-error">⚠ {err}</div>}
-
       <div className="features">
         <div className="feat"><span className="feat-icon">📡</span>LIVE ADS-B DATA</div>
-        <div className="feat"><span className="feat-icon">✈</span>ALL AIRCRAFT</div>
-        <div className="feat"><span className="feat-icon">🔄</span>AUTO-REFRESH</div>
+        <div className="feat"><span className="feat-icon">✈</span>ORIGIN & DESTINATION</div>
+        <div className="feat"><span className="feat-icon">🛩</span>AIRCRAFT TYPE</div>
         <div className="feat"><span className="feat-icon">🆓</span>100% FREE</div>
       </div>
     </div>
   );
 }
 
-// ─── Flight board ────────────────────────────────────────────────────────────
+// ─── Route + Aircraft detail panel ───────────────────────────────────────────
+
+function DetailPanel({ flight }) {
+  const [info,    setInfo]    = useState(null);
+  const [loading, setLoading] = useState(true);
+  const [error,   setError]   = useState(null);
+
+  useEffect(() => {
+    setInfo(null); setLoading(true); setError(null);
+    const params = new URLSearchParams();
+    if (flight.callsign) params.set("callsign", flight.callsign);
+    if (flight.icao)     params.set("icao",     flight.icao);
+
+    fetch(`/api/route?${params}`)
+      .then(r => r.json())
+      .then(d => { setInfo(d); setLoading(false); })
+      .catch(e => { setError(e.message); setLoading(false); });
+  }, [flight.icao]);
+
+  const spd    = fmtSpd(flight.speed);
+  const hdg    = getHeading(flight.track);
+  const vrFpm  = flight.vrate ? Math.round(flight.vrate) : 0;
+  const vrDisp = vrFpm > 50 ? `▲ ${vrFpm} FPM` : vrFpm < -50 ? `▼ ${Math.abs(vrFpm)} FPM` : "LEVEL";
+
+  const route    = info?.route;
+  const aircraft = info?.aircraft;
+
+  return (
+    <div className="dpanel">
+      {/* ── Route banner ── */}
+      {loading && (
+        <div className="route-loading">
+          <span style={{color:"#ff9900"}}>●</span> LOOKING UP ROUTE...
+        </div>
+      )}
+      {!loading && !route && (
+        <div className="route-none">✈ ROUTE DATA NOT AVAILABLE FOR THIS FLIGHT</div>
+      )}
+      {!loading && route?.origin && route?.destination && (
+        <div className="route-banner">
+          {/* Origin */}
+          <div className="route-airport">
+            <div className="route-iata origin">{route.origin.iata || route.origin.icao}</div>
+            <div className="route-city origin">{route.origin.city}{route.origin.country !== "United States" ? `, ${route.origin.country}` : ""}</div>
+            <div className="route-airport-name">{route.origin.name}</div>
+          </div>
+
+          <div className="route-arrow">→</div>
+
+          {/* Destination */}
+          <div className="route-airport">
+            <div className="route-iata dest">{route.destination.iata || route.destination.icao}</div>
+            <div className="route-city dest">{route.destination.city}{route.destination.country !== "United States" ? `, ${route.destination.country}` : ""}</div>
+            <div className="route-airport-name">{route.destination.name}</div>
+          </div>
+
+          {/* Airline name if we got it from adsbdb */}
+          {route.airline && (
+            <div style={{marginLeft:"auto",textAlign:"right"}}>
+              <div className="ac-label">OPERATED BY</div>
+              <div style={{fontFamily:"'Orbitron',monospace",fontSize:12,color:"#ffaa44",marginTop:3}}>
+                {route.airline.toUpperCase()}
+              </div>
+            </div>
+          )}
+        </div>
+      )}
+
+      {/* ── Aircraft type strip ── */}
+      {!loading && aircraft && (
+        <div className="ac-strip">
+          {aircraft.photoUrl && (
+            <img className="ac-photo" src={aircraft.photoUrl} alt={aircraft.type}
+              onError={e=>e.target.style.display="none"}/>
+          )}
+          {aircraft.type && (
+            <div className="ac-field">
+              <div className="ac-label">AIRCRAFT TYPE</div>
+              <div className="ac-value">{aircraft.type.toUpperCase()}</div>
+            </div>
+          )}
+          {aircraft.icaoType && (
+            <div className="ac-field">
+              <div className="ac-label">ICAO TYPE</div>
+              <div className="ac-value">{aircraft.icaoType}</div>
+            </div>
+          )}
+          {aircraft.manufacturer && (
+            <div className="ac-field">
+              <div className="ac-label">MANUFACTURER</div>
+              <div className="ac-value">{aircraft.manufacturer.toUpperCase()}</div>
+            </div>
+          )}
+          {aircraft.registration && (
+            <div className="ac-field">
+              <div className="ac-label">REGISTRATION</div>
+              <div className="ac-value">{aircraft.registration}</div>
+            </div>
+          )}
+          {aircraft.owner && (
+            <div className="ac-field">
+              <div className="ac-label">OWNER</div>
+              <div className="ac-value" style={{fontSize:11}}>{aircraft.owner.toUpperCase()}</div>
+            </div>
+          )}
+        </div>
+      )}
+
+      {/* ── Flight stats ── */}
+      <div className="stats-grid">
+        <div className="stat-cell">
+          <div className="stat-label">ALTITUDE</div>
+          <div className="stat-val">{feetAlt(flight.alt)} FT</div>
+        </div>
+        <div className="stat-cell">
+          <div className="stat-label">GROUND SPEED</div>
+          <div className="stat-val">{spd} KTS</div>
+        </div>
+        <div className="stat-cell">
+          <div className="stat-label">HEADING</div>
+          <div className="stat-val">{flight.track ? Math.round(flight.track)+"° " : ""}{hdg}</div>
+        </div>
+        <div className="stat-cell">
+          <div className="stat-label">VERT RATE</div>
+          <div className="stat-val" style={{color: vrFpm>50?"#44ff88":vrFpm<-50?"#ff5544":"#ffcc44"}}>{vrDisp}</div>
+        </div>
+        <div className="stat-cell">
+          <div className="stat-label">SQUAWK</div>
+          <div className="stat-val">{flight.squawk||"----"}</div>
+        </div>
+        <div className="stat-cell">
+          <div className="stat-label">ICAO HEX</div>
+          <div className="stat-val">{flight.icao.toUpperCase()}</div>
+        </div>
+        <div className="stat-cell">
+          <div className="stat-label">POSITION</div>
+          <div className="stat-val" style={{fontSize:11}}>{flight.lat.toFixed(3)}°N {Math.abs(flight.lon).toFixed(3)}°W</div>
+        </div>
+        <div className="stat-cell">
+          <div className="stat-label">DISTANCE</div>
+          <div className="stat-val">{flight.miles.toFixed(1)} MI</div>
+        </div>
+      </div>
+    </div>
+  );
+}
+
+// ─── Board ────────────────────────────────────────────────────────────────────
 
 function Board({ location, onReset }) {
   const [flights,    setFlights]    = useState([]);
@@ -405,13 +458,12 @@ function Board({ location, onReset }) {
       if (!res.ok) throw new Error(`Server error ${res.status}`);
       const data = await res.json();
       const ac   = data.ac || [];
-
       const parsed = ac
         .filter(a => a.lat != null && a.lon != null)
         .map(a => ({
           icao:    (a.hex||"??????").toLowerCase(),
           callsign:(a.flight||"").trim(),
-          reg:     a.r||"", type: a.t||"",
+          type:    a.t||"",
           lat:     parseFloat(a.lat), lon: parseFloat(a.lon),
           alt:     a.alt_baro ?? a.alt_geom ?? null,
           speed:   a.gs ?? null, track: a.track ?? null,
@@ -422,16 +474,11 @@ function Board({ location, onReset }) {
         .filter(f => f.alt !== "ground" && f.alt > 0)
         .sort((a,b) => a.miles - b.miles)
         .slice(0, 25);
-
       setFlights(parsed);
       setLastUpdate(new Date());
       setError(null);
-    } catch(e) {
-      setError(e.message);
-    } finally {
-      setLoading(false);
-      setFetching(false);
-    }
+    } catch(e) { setError(e.message); }
+    finally { setLoading(false); setFetching(false); }
   }, [location]);
 
   useEffect(() => {
@@ -453,17 +500,14 @@ function Board({ location, onReset }) {
   const avgAlt = flights.length ? Math.round(flights.reduce((s,f)=>s+(f.alt||0),0)/flights.length/1000) : 0;
   const maxSpd = flights.length ? Math.max(...flights.map(f=>fmtSpd(f.speed))) : 0;
   const fmtC   = d => d.toLocaleTimeString("en-US",{hour12:false});
-
   const tickerText = flights.length
     ? flights.map(f=>`✈ ${f.callsign||f.icao}  ${feetAlt(f.alt)}FT  ${fmtSpd(f.speed)}KTS  ${f.miles.toFixed(1)}MI`).join("   ·   ")
-    : `SCANNING SKIES OVER ${location.city}, ${location.state}...`;
-
-  const dotClass = fetching?"sdot fetching":error?"sdot err":"sdot live";
-  const statusTxt= fetching?"UPDATING...":error?"ERROR":"LIVE";
+    : `SCANNING SKIES OVER ${location.city.toUpperCase()}, ${location.state}...`;
+  const dotClass  = fetching?"sdot fetching":error?"sdot err":"sdot live";
+  const statusTxt = fetching?"UPDATING...":error?"ERROR":"LIVE";
 
   return (
     <div className="wall">
-      {/* Header */}
       <div className="hdr">
         <div className="hdr-left">
           <div className="logo" onClick={onReset}>✈ FLYBY.LIVE</div>
@@ -485,18 +529,15 @@ function Board({ location, onReset }) {
       <div className="rbar"><div className="rfill" style={{width:`${rpct}%`}}/></div>
       {error && <div className="errbanner">⚠ {error}</div>}
 
-      {/* Ticker */}
       <div className="ticker">
         <div className="tinner">{tickerText}&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;{tickerText}</div>
       </div>
 
-      {/* Board header */}
       <div className="bhdr">
         <span>CALLSIGN</span><span>AIRLINE / TYPE</span><span>ALT (FT)</span>
         <span>SPEED</span><span>HEADING</span><span>DIST</span><span>VERT RATE</span>
       </div>
 
-      {/* Flight rows */}
       <div>
         {loading && (
           <div className="empty">
@@ -511,14 +552,14 @@ function Board({ location, onReset }) {
         )}
 
         {flights.map(f => {
-          const spd   = fmtSpd(f.speed);
-          const hdg   = getHeading(f.track);
-          const altPct= Math.min(100,((f.alt||0)/40000)*100);
-          const isSel = selected===f.icao;
-          const ac    = ACCENT[(f.callsign||"").slice(0,3).toUpperCase()]||"#ff6600";
-          const vrFpm = f.vrate ? Math.round(f.vrate) : 0;
-          const vrLbl = vrFpm>50?`▲ ${vrFpm}`:vrFpm<-50?`▼ ${Math.abs(vrFpm)}`:"LEVEL";
-          const vrCls = vrFpm>50?"cell grn":vrFpm<-50?"cell red":"cell dim";
+          const spd    = fmtSpd(f.speed);
+          const hdg    = getHeading(f.track);
+          const altPct = Math.min(100,((f.alt||0)/40000)*100);
+          const isSel  = selected===f.icao;
+          const ac     = ACCENT[(f.callsign||"").slice(0,3).toUpperCase()]||"#ff6600";
+          const vrFpm  = f.vrate ? Math.round(f.vrate) : 0;
+          const vrLbl  = vrFpm>50?`▲ ${vrFpm}`:vrFpm<-50?`▼ ${Math.abs(vrFpm)}`:"LEVEL";
+          const vrCls  = vrFpm>50?"cell grn":vrFpm<-50?"cell red":"cell dim";
 
           return (
             <div key={f.icao}>
@@ -529,7 +570,7 @@ function Board({ location, onReset }) {
                   <span className="cs">{f.callsign||f.icao}</span>
                 </div>
                 <div className="cell" style={{fontSize:12}}>
-                  {getAirline(f.callsign)}
+                  {getAirline(f.callsign, null)}
                   {f.type&&<span className="dim" style={{fontSize:10}}> · {f.type}</span>}
                 </div>
                 <div className="cell" style={{flexDirection:"column",alignItems:"flex-start",gap:2}}>
@@ -542,28 +583,12 @@ function Board({ location, onReset }) {
                 <div className={vrCls}>{vrLbl}<span style={{fontSize:10,marginLeft:2}}>FPM</span></div>
               </div>
 
-              {isSel && (
-                <div className="dpanel">
-                  <div><div className="dlabel">CALLSIGN</div><div className="dval">{f.callsign||"---"}</div></div>
-                  <div><div className="dlabel">REG / ICAO</div><div className="dval">{f.reg||f.icao.toUpperCase()}</div></div>
-                  <div><div className="dlabel">AIRCRAFT</div><div className="dval">{f.type||"UNKNOWN"}</div></div>
-                  <div><div className="dlabel">SQUAWK</div><div className="dval">{f.squawk||"----"}</div></div>
-                  <div><div className="dlabel">ALTITUDE</div><div className="dval">{feetAlt(f.alt)} FT</div></div>
-                  <div><div className="dlabel">GND SPEED</div><div className="dval">{spd} KTS</div></div>
-                  <div><div className="dlabel">TRACK</div><div className="dval">{f.track?Math.round(f.track)+"°":"---"} {hdg}</div></div>
-                  <div><div className="dlabel">VERT RATE</div><div className="dval">{vrFpm!==0?vrFpm+" FPM":"LEVEL"}</div></div>
-                  <div style={{gridColumn:"span 2"}}><div className="dlabel">POSITION</div>
-                    <div className="dval" style={{fontSize:11}}>{f.lat.toFixed(4)}°N &nbsp;{Math.abs(f.lon).toFixed(4)}°W</div></div>
-                  <div style={{gridColumn:"span 2"}}><div className="dlabel">DISTANCE FROM {location.city.toUpperCase()}</div>
-                    <div className="dval">{f.miles.toFixed(2)} MI</div></div>
-                </div>
-              )}
+              {isSel && <DetailPanel flight={f}/>}
             </div>
           );
         })}
       </div>
 
-      {/* Bottom radar + stats */}
       {!loading && flights.length > 0 && (
         <div className="bot">
           <div>
@@ -616,18 +641,18 @@ function Board({ location, onReset }) {
       {lastUpdate && (
         <div className="foot">
           LAST UPDATE {lastUpdate.toLocaleTimeString()} · AUTO-REFRESH {INTERVAL}S ·
-          DATA: <a href="https://adsb.lol" target="_blank" rel="noopener noreferrer">ADSB.LOL</a> (ODbL 1.0)
+          DATA: <a href="https://adsb.lol" target="_blank" rel="noopener noreferrer">ADSB.LOL</a> ·
+          ROUTES: <a href="https://adsbdb.com" target="_blank" rel="noopener noreferrer">ADSBDB.COM</a>
         </div>
       )}
     </div>
   );
 }
 
-// ─── Root App ────────────────────────────────────────────────────────────────
+// ─── App ──────────────────────────────────────────────────────────────────────
 
 export default function App() {
   const [location, setLocation] = useState(null);
-
   return (
     <>
       <style>{CSS}</style>
